@@ -29,7 +29,7 @@ JNIEXPORT void ooura_fft(double* input, double* output, int length)
     int* ip = new int[lengthSqrt];
     ip[0] = 0;
 
-    int lengthW = (int)(5 * length / 4);
+    int lengthW = (int)(5 * (double)length / 4 + 0.5);
     double* w = new double[lengthW];
 
     copy_n(input, length, output);
