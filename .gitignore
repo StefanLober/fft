@@ -23,3 +23,5 @@
 /fft-test/x64/Release
 /ooura/x64/Release
 /x64/Release
+*.so
+*.o
