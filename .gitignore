@@ -1,0 +1,25 @@
+﻿################################################################################
+# Diese .gitignore-Datei wurde von Microsoft(R) Visual Studio automatisch erstellt.
+################################################################################
+
+*.ipch
+*.db
+*.user
+*.suo
+*.csv
+*.tlog
+*.opendb
+*.db-shm
+*.db-wal
+/fft-test/Release
+/Release
+/ooura/Release
+/Debug
+/ooura/Debug
+/fft-test/Debug
+/fft-test/x64/Debug
+/ooura/x64/Debug
+/x64/Debug
+/fft-test/x64/Release
+/ooura/x64/Release
+/x64/Release
