@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <cmath>
 #include <chrono>
 #include <thread>
@@ -15,7 +16,7 @@ using namespace std;
 const auto processor_count = thread::hardware_concurrency();
 const int DATA_COUNT = 0x10000;
 
-const int LENGTH = 0x10000;
+const int LENGTH = 0x4000;
 const int CUT_OFF = 0x80;
 
 struct ThreadData {
@@ -23,7 +24,7 @@ struct ThreadData {
     double* output;
 };
 
-void fft(const ThreadData* threadData)
+void fft(ThreadData* threadData)
 {
     for (unsigned int i = 0; i < DATA_COUNT / processor_count; i++)
     {
@@ -34,21 +35,21 @@ void fft(const ThreadData* threadData)
 int main()
 {
     thread* threads = new thread[processor_count];
-    ThreadData* threadData = new ThreadData[processor_count];
+    unique_ptr<ThreadData> threadDataPtr(new ThreadData[processor_count]);
     
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
     for(unsigned int i=0; i<processor_count; i++)
     {
-        threadData[i].input = new double[LENGTH];
-        threadData[i].output = new double[LENGTH + 1];
+        threadDataPtr.get()[i].input = new double[LENGTH];
+        threadDataPtr.get()[i].output = new double[LENGTH + 1];
 
         for (int x = 0; x < LENGTH; x++)
         {
-            threadData[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + sin(x * (double)2 * M_PI / (double)LENGTH);
+            threadDataPtr.get()[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + sin(x * (double)2 * M_PI / (double)LENGTH);
         }
 
-        threads[i] = thread(fft, threadData);
+        threads[i] = thread(fft, threadDataPtr.get());
     }
 
     for (unsigned int i = 0; i < processor_count; i++)
@@ -62,19 +63,14 @@ int main()
     ofstream resultFile("result.csv");
     for (int x = 0; x < LENGTH; x++)
     {
-        resultFile << threadData[0].input[x] << ";";
+        resultFile << threadDataPtr.get()[0].input[x] << ";";
 
+        auto firstThreadDataOutput = threadDataPtr.get()[0].output;
         if (x * 2 < CUT_OFF)
-            resultFile << sqrt(threadData[0].output[x * 2] * threadData[0].output[x * 2] + threadData[0].output[x * 2 + 1] * threadData[0].output[x * 2 + 1]) * 2 / (LENGTH) << endl;
+            resultFile << sqrt(firstThreadDataOutput[x * 2] * firstThreadDataOutput[x * 2] + firstThreadDataOutput[x * 2 + 1] * firstThreadDataOutput[x * 2 + 1]) * 2 / (LENGTH) << endl;
         else
             resultFile << endl;
     }
     resultFile.flush();
     resultFile.close();
-
-    for (unsigned int i = 0; i < processor_count; i++)
-    {
-        delete[]threadData[i].input;
-        delete[]threadData[i].output;
-    }
 }
