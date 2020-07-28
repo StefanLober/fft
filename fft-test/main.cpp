@@ -34,7 +34,7 @@ void fft(ThreadData* threadData)
 
 int main()
 {
-    thread* threads = new thread[processor_count];
+    unique_ptr<thread> threads(new thread[processor_count]);
     unique_ptr<ThreadData> threadDataPtr(new ThreadData[processor_count]);
     
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
@@ -49,12 +49,12 @@ int main()
             threadDataPtr.get()[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + sin(x * (double)2 * M_PI / (double)LENGTH);
         }
 
-        threads[i] = thread(fft, threadDataPtr.get());
+        threads.get()[i] = thread(fft, threadDataPtr.get());
     }
 
     for (unsigned int i = 0; i < processor_count; i++)
     {
-        threads[i].join();
+        threads.get()[i].join();
     }
 
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
