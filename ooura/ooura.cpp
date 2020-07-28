@@ -57,9 +57,7 @@ JNIEXPORT void JNICALL Java_fft_JniFft_internalCalculate
     }
 
     env->ReleaseDoubleArrayElements(inputArray, input, 0);
-
-    log("delete []output\n");
-    delete[]output;
+    env->ReleaseDoubleArrayElements(outputArray, output, 0);
 
     log("Java_fft_JniFft_internalCalculate end\n");
 }

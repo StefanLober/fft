@@ -26,3 +26,5 @@
 *.so
 *.o
 /out
+*.class
+*.dll

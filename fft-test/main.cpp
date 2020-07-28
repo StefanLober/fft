@@ -15,7 +15,6 @@ using namespace std;
 
 const auto processor_count = thread::hardware_concurrency();
 const int DATA_COUNT = 0x1000;
-
 const int LENGTH = 0x4000;
 const int CUT_OFF = 0x80;
 
@@ -67,7 +66,7 @@ int main()
 
         auto firstThreadDataOutput = threadData[0].output;
         if (x * 2 < CUT_OFF)
-            resultFile << sqrt(firstThreadDataOutput[x * 2] * firstThreadDataOutput[x * 2] + firstThreadDataOutput[x * 2 + 1] * firstThreadDataOutput[x * 2 + 1]) * 2 / (LENGTH) << endl;
+            resultFile << sqrt(firstThreadDataOutput[x * 2] * firstThreadDataOutput[x * 2] + firstThreadDataOutput[x * 2 + 1] * firstThreadDataOutput[x * 2 + 1]) * 2 / LENGTH << endl;
         else
             resultFile << endl;
     }
