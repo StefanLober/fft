@@ -34,3 +34,5 @@
 /app/.idea/caches
 /app/B2020+12/build
 *.ods
+/app/local.properties
+*.iml
