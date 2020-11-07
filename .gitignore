@@ -36,3 +36,4 @@
 *.ods
 /app/local.properties
 *.iml
+/app/.idea/modules.xml
