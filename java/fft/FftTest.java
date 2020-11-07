@@ -17,8 +17,8 @@ public class FftTest {
             input[x] = (x < LENGTH / 2 ? 1 : 0) + Math.sin(x * (double)2 * Math.PI / (double)LENGTH);
         }
         
-        JniFft jniFft = new JniFft();
-        jniFft.internalCalculate(input, output);
+        JniFft jniFft = new JniFft(LENGTH);
+        jniFft.calculate(input, output, CUT_OFF);
         
         try
         {

@@ -10,5 +10,5 @@ lib$(NAME).so: $(NAME).o
 	$(CXX) $(CXXFLAGS) -shared $^ -o $(OUTDIR)/$@
 
 clean:
-	$(RM) *.o $(OUTDIR)*.so*
+	$(RM) *.o $(OUTDIR)/*.so*
 

@@ -1,6 +1,9 @@
 # FftTest
 A Java test application for the JNI wrapper int shared library ooura (liboura.so/ooura.dll).
 
+JNI header file generated with:
+javah -d .. fft.JniFft
+
 Compile with:
 javac -d out fft\*.java
 

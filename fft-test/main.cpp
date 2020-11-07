@@ -1,6 +1,3 @@
-#include "../fft_JniFft.h"
-#include "ooura.h"
-
 #define _USE_MATH_DEFINES 1
 
 #include <string>
@@ -11,65 +8,61 @@
 #include <thread>
 #include <vector>
 
+#include "ooura.h"
+
 using namespace std;
 
 const auto processor_count = thread::hardware_concurrency();
-const int DATA_COUNT = 0x1000;
-const int LENGTH = 0x4000;
-const int CUT_OFF = 0x80;
+const int LENGTH = 0x1000;
+const int CUT_OFF = 0x20;
 
-struct ThreadData {
-    double* input;
-    double* output;
-};
-
-void fft(ThreadData* threadData)
+void fft(ooura* ooura)
 {
-    for (unsigned int i = 0; i < DATA_COUNT / processor_count; i++)
-    {
-        ooura_fft(threadData->input, threadData->output, LENGTH);
-    }
+    ooura->fft();
 }
 
 int main()
 {
     vector<thread> threads(processor_count);
-    vector<ThreadData> threadData(processor_count);
-    
+    vector<unique_ptr<ooura>> oouras(processor_count);
+
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-
-    for(unsigned int i=0; i<processor_count; i++)
-    {
-        threadData[i].input = new double[LENGTH];
-        threadData[i].output = new double[LENGTH + 1];
-
-        for (int x = 0; x < LENGTH; x++)
-        {
-            threadData[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + sin(x * (double)2 * M_PI / (double)LENGTH);
-        }
-
-        threads[i] = thread(fft, &threadData[i]);
-    }
 
     for (unsigned int i = 0; i < processor_count; i++)
     {
+        oouras[i] = make_unique<ooura>(LENGTH);
+        double* input = oouras[i].get()->data();
+        for (int x = 0; x < LENGTH; x++)
+        {
+            input[x] = 2 * sin(x * (double)2 * M_PI / (double)LENGTH) + sin((double)2 * x * (double)2 * M_PI / (double)LENGTH);
+        }
+    }
+
+    unique_ptr<double[]> inputPtr = make_unique<double[]>(LENGTH);
+    double* input = inputPtr.get();
+    copy_n(oouras[0].get()->data(), LENGTH, input);
+
+    for (unsigned int i = 0; i < processor_count; i++)
+    {
+        threads[i] = thread(fft, oouras[i].get());
         threads[i].join();
     }
 
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    cout << "time for " << DATA_COUNT << " data sets of length " << LENGTH << ": " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << endl;
+    cout << "time for data of length " << LENGTH << ": " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << endl;
 
     ofstream resultFile("result.csv");
+
+    double* output = oouras[0].get()->data();
     for (int x = 0; x < LENGTH; x++)
     {
-        resultFile << threadData[0].input[x] << ";";
+        resultFile << input[x] << ";";
+        if(x < 2 * CUT_OFF)
+            resultFile << sqrt(output[x * 2] * output[x * 2] + output[x * 2 + 1] * output[x * 2 + 1]) * 2 / LENGTH;
 
-        auto firstThreadDataOutput = threadData[0].output;
-        if (x * 2 < CUT_OFF)
-            resultFile << sqrt(firstThreadDataOutput[x * 2] * firstThreadDataOutput[x * 2] + firstThreadDataOutput[x * 2 + 1] * firstThreadDataOutput[x * 2 + 1]) * 2 / LENGTH << endl;
-        else
-            resultFile << endl;
+        resultFile << endl;
     }
+
     resultFile.flush();
     resultFile.close();
 }

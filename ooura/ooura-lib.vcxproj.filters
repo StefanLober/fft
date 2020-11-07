@@ -14,9 +14,6 @@
     <ClInclude Include="ooura.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\fft_JniFft.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ooura.cpp">

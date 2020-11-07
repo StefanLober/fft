@@ -1,63 +1,63 @@
-/*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
-
-#include <algorithm>
-#include <string>
-
 #include "../fft_JniFft.h"
+#include "ooura.h"
 #include "fftsg.c"
 
 #define LIBNAME "ooura"
 
 #ifdef _DEBUG
-    #if defined(WIN32) || defined (WIN64)
-        #define log(msg) printf(msg)
-    #else
-        #include <android/log.h>
-        #define log(msg) __android_log_print(ANDROID_LOG_VERBOSE, LIBNAME, msg)
-    #endif
+#if defined(WIN32) || defined (WIN64)
+#define log(msg, ...) printf(msg, __VA_ARGS__)
 #else
-    #define log(msg)
+#include <android/log.h>
+#define log(msg) __android_log_print(ANDROID_LOG_VERBOSE, LIBNAME, msg)
+#endif
+#else
+#define log(msg)
+#endif
+
+#if defined(WIN32) || defined (WIN64)
+typedef unsigned __int64 LONGTYPE;
+#else
+typedef int LONGTYPE;
 #endif
 
 using namespace std;
 
-JNIEXPORT void ooura_fft(double* input, double* output, int length)
-{
-    log("ooura_fft\n");
+ooura::ooura(int size) :  _size(size) {
+    _data = make_unique<double[]>(static_cast<LONGTYPE>(size) + 1);
 
-    int lengthSqrt = (int)(sqrt((double)length) + 0.5) + 2;
-    int* ip = new int[lengthSqrt];
-    ip[0] = 0;
+    int sizeSqrt = (int) (sqrt((double) _size) + 0.5) + 2;
+    _ip = make_unique<int[]>(sizeSqrt);
+    _ip.get()[0] = 0;
 
-    int lengthW = (int)(5 * (double)length / 4 + 0.5);
-    double* w = new double[lengthW];
-
-    copy_n(input, length, output);
-    rdft(length, 1, output, ip, w);
-
-    delete[]ip;
-    delete[]w;
-
-    log("ooura_fft end\n");
+    _w = make_unique<double[]>(size);
 }
 
-JNIEXPORT void JNICALL Java_fft_JniFft_internalCalculate
-(JNIEnv* env, jobject obj, jdoubleArray inputArray, jdoubleArray outputArray)
-{
-    log("Java_fft_JniFft_internalCalculate\n");
+void ooura::fft() {
+    log("fft\n");
 
-    int length = env->GetArrayLength(inputArray);
-    double* input = env->GetDoubleArrayElements(inputArray, 0);
-    double* output = env->GetDoubleArrayElements(outputArray, 0);
-    ooura_fft(input, output, length);
+    rdft(_size, 1, _data.get(), _ip.get(), _w.get());
+}
 
-    if (outputArray != NULL)
-    {
-        env->SetDoubleArrayRegion(outputArray, 0, length, output);
-    }
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_fft_JniFft_internalNew(JNIEnv *env, jobject thiz, jint size) {
+    ooura *o = new ooura(static_cast<int>(size));
+    return reinterpret_cast<jlong>(o);
+}
 
-    env->ReleaseDoubleArrayElements(inputArray, input, 0);
-    env->ReleaseDoubleArrayElements(outputArray, output, 0);
+extern "C"
+JNIEXPORT void JNICALL
+Java_fft_JniFft_internalCalculate(JNIEnv *env, jobject thiz, jdoubleArray inputData, jdoubleArray outputData, jint cutOff, jlong nativeObjectPointer) {
+    ooura *o = reinterpret_cast<ooura *>(nativeObjectPointer);
+    env->GetDoubleArrayRegion(inputData,0, o->size(), o->data());
+    o->fft();
+    env->SetDoubleArrayRegion(outputData,0, cutOff * 2, o->data());
+}
 
-    log("Java_fft_JniFft_internalCalculate end\n");
+extern "C"
+JNIEXPORT void JNICALL
+Java_fft_JniFft_internalDispose(JNIEnv *env, jobject thiz, jlong nativeObjectPointer) {
+    ooura *o = reinterpret_cast<ooura *>(nativeObjectPointer);
+    delete o;
 }

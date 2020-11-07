@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/B2020+12/B2020+12.iml" filepath="$PROJECT_DIR$/.idea/modules/B2020+12/B2020+12.iml" group="app/B2020+12" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/fft-app.iml" filepath="$PROJECT_DIR$/.idea/modules/fft-app.iml" group="app" />
+    </modules>
+  </component>
+</project>

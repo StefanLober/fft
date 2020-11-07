@@ -9,11 +9,27 @@ extern "C" {
 #endif
 /*
  * Class:     fft_JniFft
+ * Method:    internalNew
+ * Signature: (I)J
+ */
+JNIEXPORT jlong JNICALL Java_fft_JniFft_internalNew
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     fft_JniFft
  * Method:    internalCalculate
- * Signature: ([D[D)V
+ * Signature: ([D[DIJ)V
  */
 JNIEXPORT void JNICALL Java_fft_JniFft_internalCalculate
-  (JNIEnv *, jobject, jdoubleArray, jdoubleArray);
+  (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jint, jlong);
+
+/*
+ * Class:     fft_JniFft
+ * Method:    internalDispose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_fft_JniFft_internalDispose
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

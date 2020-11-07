@@ -28,3 +28,9 @@
 /out
 *.class
 *.dll
+/app/.gradle
+/app/.idea/libraries
+/app/.idea/codeStyles
+/app/.idea/caches
+/app/B2020+12/build
+*.ods
