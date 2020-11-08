@@ -14,9 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
+import java.util.logging.Level
+import java.util.logging.Logger
 
-
-class FullscreenActivity() : AppCompatActivity() {
+class FullscreenActivity : AppCompatActivity() {
     private lateinit var chartView: ChartView
     private lateinit var fullscreenContent: TextView
     private lateinit var threadPool: Unit
@@ -29,6 +30,8 @@ class FullscreenActivity() : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Logger.getLogger("B2020Logger").log(Level.INFO, "onCreate")
+
         setContentView(R.layout.activity_fullscreen)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -38,6 +41,8 @@ class FullscreenActivity() : AppCompatActivity() {
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
+
+        Logger.getLogger("B2020Logger").log(Level.INFO, "onPostCreate")
 
         supportActionBar?.hide()
 
@@ -63,14 +68,29 @@ class FullscreenActivity() : AppCompatActivity() {
             )
             .build()
         _data = ShortArray(AudioRecord.getMinBufferSize(sampleRate, channel, encoding))
-
-        audioRecorder!!.startRecording()
-        isActive = true
-
-        read(Handler(Looper.getMainLooper()), callback)
     }
 
-    private fun read(resultHandler: Handler, callback: (ShortArray) -> Unit) {
+    override fun onResume() {
+        super.onResume()
+
+        Logger.getLogger("B2020Logger").log(Level.INFO, "onResume")
+
+        audioRecorder?.startRecording()
+        isActive = true
+
+        read(Handler(Looper.getMainLooper()))
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        Logger.getLogger("B2020Logger").log(Level.INFO, "onStop")
+
+        audioRecorder?.stop()
+        isActive = false
+    }
+
+     private fun read(resultHandler: Handler) {
         threadPool = Executors.newSingleThreadExecutor { task -> Thread(task, "audio-thread")
         }.execute {
             try {
@@ -79,40 +99,27 @@ class FullscreenActivity() : AppCompatActivity() {
                     if (read > 0) {
                         resultHandler.post { callback(_data!!) }
 
-                        Thread.sleep(50)
+                        Thread.sleep(15)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (ex: Exception) {
             }
         }
     }
 
-    private val callback: (ShortArray) -> Unit = {
-            data ->
-
+    private val callback: (ShortArray) -> Unit = { data ->
         try {
-//            var sum = 0
-//            for (index in 0..data.size-1 step 2) {
-//                var value: Int = data[index + 1].toInt()
-//                //if (value < 0) value *= -1
-//                value = value shl 8
-//                value += data[index].toInt()
-//                sum += Math.abs(value)
-//            }
-//
-//            var mean = sum / data.size
-//            fullscreenContent.setText("Mean: $mean")
-
             chartView.setData(data)
             chartView.invalidate()
         }
         catch(ex: Exception) {
-
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+
+        Logger.getLogger("B2020Logger").log(Level.INFO, "onDestroy")
 
         audioRecorder?.stop()
         audioRecorder?.release()
