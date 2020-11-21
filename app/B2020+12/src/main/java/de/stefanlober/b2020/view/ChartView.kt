@@ -43,8 +43,6 @@ class ChartView : View {
         super.onDraw(canvas)
 
         try {
-            canvas!!.save()
-
             val valueDivisor = 1000F
             val stepHeight = (height / dataList!!.size).toFloat()
             val scaleFactor = stepHeight / valueDivisor
@@ -72,11 +70,9 @@ class ChartView : View {
                 //canvas!!.drawRect(0F, yCenter, width.toFloat(), yCenter + stepHeight, erasePaint)
 
                 path.lineTo(lastXCoord, yCenter)
-                canvas!!.drawPath(path, erasePaint)
-                canvas!!.drawPath(path, paint)
+                canvas?.drawPath(path, erasePaint)
+                canvas?.drawPath(path, paint)
             }
-
-            canvas!!.restore()
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "onDraw")
         }
