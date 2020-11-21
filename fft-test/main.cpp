@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <algorithm>
 
 #include "ooura.h"
 

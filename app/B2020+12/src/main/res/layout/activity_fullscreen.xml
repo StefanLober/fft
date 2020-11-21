@@ -3,24 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_margin="70sp"
     android:background="#000000"
-    tools:context=".FullscreenActivity">
+    tools:context=".view.FullscreenActivity">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-    <TextView
-        android:id="@+id/fullscreen_content"
-        android:layout_width="match_parent"
-        android:layout_height="60sp"
-        android:gravity="center"
+    <de.stefanlober.b2020.view.ChartView
         android:keepScreenOn="true"
-        android:text="@string/dummy_content"
-        android:textColor="#33b5e5"
-        android:textSize="50sp"
-        android:textStyle="bold" />
-
-    <de.stefanlober.b2020.ChartView
         android:id="@+id/chart_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

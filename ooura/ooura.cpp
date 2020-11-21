@@ -1,4 +1,5 @@
-#include "../fft_JniFft.h"
+#include <jni.h>
+
 #include "ooura.h"
 #include "fftsg.c"
 

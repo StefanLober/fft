@@ -2,16 +2,21 @@
 
 #include <memory>
 
-#ifdef OOURALIB_EXPORTS
-#define OOURA_API __declspec(dllexport)
+#if defined(WIN32) || defined (WIN64)
+    #ifdef OOURALIB_EXPORTS
+        #define OOURA_API __declspec(dllexport)
+    #else
+        #define OOURA_API __declspec(dllimport)
+    #endif
+
+    #pragma warning(disable: 4251)
 #else
-#define OOURA_API __declspec(dllimport)
+    #define OOURA_API
 #endif
 
 class OOURA_API ooura
 {
 private:
-#pragma warning(disable: 4251)
     std::unique_ptr<double[]> _data;
     std::unique_ptr<int[]> _ip;
     std::unique_ptr<double[]> _w;
