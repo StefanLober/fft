@@ -58,7 +58,7 @@ class AudioController(private var view: IView) {
     fun start() {
         try {
             data = ShortArray(AudioRecord.getMinBufferSize(sampleRate, channel, encoding))
-            audioRecorder!!.startRecording()
+            audioRecorder?.startRecording()
             isActive = true
 
             read()
@@ -69,7 +69,7 @@ class AudioController(private var view: IView) {
 
     fun stop() {
         try {
-            audioRecorder!!.stop()
+            audioRecorder?.stop()
             isActive = false
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "stop")
@@ -78,10 +78,11 @@ class AudioController(private var view: IView) {
 
     fun cleanUp() {
         try {
-            audioRecorder!!.stop()
-            audioRecorder!!.release()
+            audioRecorder?.stop()
+            audioRecorder?.release()
             audioRecorder = null
 
+            fft?.dispose()
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "cleanUp")
         }
