@@ -1,1 +1,10 @@
+/local.properties
+/.gradle
+/.idea/libraries
+/.idea/codeStyles
+/.idea/caches
+/.idea/modules.xml
+/.idea/assetWizardSettings.xml
 /build
+/B2020+12/build
+/B2020+12/.cxx
