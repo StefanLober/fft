@@ -21,7 +21,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
     private val fftSize = 8192
-    private val cutOff = 220
+    private val cutOff = 200
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +79,6 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
     override fun update(dataList: ArrayList<DoubleArray>) {
         chartView.setData(dataList)
-        chartView.invalidate()
+        chartView.postInvalidate()
     }
 }

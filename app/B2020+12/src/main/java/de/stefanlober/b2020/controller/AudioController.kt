@@ -18,7 +18,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private val channel = AudioFormat.CHANNEL_IN_MONO
     private val sampleRate = 48000
 
-    private val listSize = 30
+    private val listSize = 35
 
     private var isActive: Boolean = false
 
