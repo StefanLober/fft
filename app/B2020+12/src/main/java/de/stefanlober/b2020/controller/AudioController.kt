@@ -5,6 +5,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Handler
 import android.os.Looper
+import de.stefanlober.b2020.FftWrapper
 import de.stefanlober.b2020.view.IView
 import fft.JniFft
 import java.lang.Math.sqrt
@@ -12,14 +13,10 @@ import java.util.concurrent.Executors
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class AudioController(private var view: IView) {
+class AudioController(private var view: IView, private var fftWrapper: FftWrapper) {
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
     private val channel = AudioFormat.CHANNEL_IN_MONO
     private val sampleRate = 48000
-
-    private val fftSize = 8192
-    private val cutOff = 190
-    private val outputScaleFactor = 20
 
     private val listSize = 30
 
@@ -27,12 +24,7 @@ class AudioController(private var view: IView) {
 
     private var audioRecorder: AudioRecord? = null
     private lateinit var data: ShortArray
-    private var dataList: ArrayList<ShortArray> = ArrayList()
-
-    private var input = DoubleArray(fftSize)
-    private var output = DoubleArray(2 * cutOff)
-
-    private var fft: JniFft? = null
+    private var dataList: ArrayList<DoubleArray> = ArrayList()
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -48,8 +40,6 @@ class AudioController(private var view: IView) {
                         .build()
                 )
                 .build()
-
-            fft = JniFft(fftSize)
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "init")
         }
@@ -81,8 +71,6 @@ class AudioController(private var view: IView) {
             audioRecorder?.stop()
             audioRecorder?.release()
             audioRecorder = null
-
-            fft?.dispose()
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "cleanUp")
         }
@@ -106,19 +94,8 @@ class AudioController(private var view: IView) {
     private fun processData(data: ShortArray) {
         Executors.newSingleThreadExecutor { task -> Thread(task, "process-thread") }.execute {
             try {
-                val scaleFactor = data.size / input.size.toDouble()
-                for (i in input.indices) {
-                    input[i] = data[(i * scaleFactor).toInt()].toDouble()
-                }
-
-                fft!!.calculate(input, output, cutOff)
-
-                val shortOutput = ShortArray(cutOff)
-                for (i in 0 until cutOff) {
-                    shortOutput[i] = (sqrt(output[2 * i] * output[2 * i] + output[2 * i + 1] * output[2 * i + 1]) * outputScaleFactor / fftSize).toShort()
-                }
-
-                dataList.add(0, shortOutput)
+                val scaledOutput = fftWrapper.calculate(data)
+                dataList.add(0, scaledOutput)
                 while (dataList.size > listSize)
                     dataList.removeAt(listSize)
 

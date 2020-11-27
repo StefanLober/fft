@@ -20,7 +20,7 @@ class ChartView : View {
         init()
     }
 
-    private var dataList: ArrayList<ShortArray>? = null
+    private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
 
@@ -35,7 +35,7 @@ class ChartView : View {
         erasePaint.isAntiAlias = true
     }
 
-    fun setData(dataList: ArrayList<ShortArray>) {
+    fun setData(dataList: ArrayList<DoubleArray>) {
         this.dataList = dataList
     }
 
@@ -58,7 +58,7 @@ class ChartView : View {
                 for (i in 1 until data.size) {
                     val xCoord = (i.toFloat() * width.toFloat()) / data.size.toFloat()
                     if (xCoord >= lastXCoord + stepWidth) {
-                        val scaledValue = data[i] * scaleFactor
+                        val scaledValue = (data[i] * scaleFactor).toFloat()
                         val yCoord = yCenter - scaledValue
 
                         path.lineTo(xCoord, yCoord)

@@ -1,6 +1,6 @@
 package fft
 
-class JniFft(length: Int) {
+class JniFft(length: Int) : IFft {
     companion object {
         init {
             System.loadLibrary("ooura")
@@ -13,11 +13,11 @@ class JniFft(length: Int) {
     private external fun internalCalculate(inputData: DoubleArray, outputData: DoubleArray, cutOff: Int, nativeObjectPointer: Long)
     private external fun internalDispose(nativeObjectPointer: Long)
 
-    fun calculate(inputData: DoubleArray, outputData: DoubleArray, cutOff: Int) {
+    override fun calculate(inputData: DoubleArray, outputData: DoubleArray, cutOff: Int) {
         internalCalculate(inputData, outputData, cutOff, nativeObjectPointer)
     }
 
-    fun dispose() {
+    override fun dispose() {
         internalDispose(nativeObjectPointer)
     }
 

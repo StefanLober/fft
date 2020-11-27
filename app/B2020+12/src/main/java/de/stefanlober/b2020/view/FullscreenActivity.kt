@@ -7,14 +7,21 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import de.stefanlober.b2020.FftWrapper
 import de.stefanlober.b2020.R
 import de.stefanlober.b2020.controller.AudioController
+import fft.IFft
+import fft.JniFft
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class FullscreenActivity : AppCompatActivity(), IView {
     private lateinit var chartView: ChartView
-    private lateinit var _controller: AudioController
+    private lateinit var audioController: AudioController
+    private lateinit var fft: IFft
+    private lateinit var fftWrapper: FftWrapper
+    private val fftSize = 8192
+    private val cutOff = 220
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +34,10 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
         chartView = findViewById(R.id.chart_view)
 
-        _controller = AudioController(this)
+        fft = JniFft(fftSize)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff)
+
+        audioController = AudioController(this, fftWrapper)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -42,31 +52,32 @@ class FullscreenActivity : AppCompatActivity(), IView {
             ActivityCompat.requestPermissions(this, permissions,0)
         }
 
-        _controller.init()
+        audioController.init()
     }
 
     override fun onResume() {
         super.onResume()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onResume")
 
-        _controller.start()
+        audioController.start()
     }
 
     override fun onStop() {
         super.onStop()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onStop")
 
-        _controller.stop()
+        audioController.stop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onDestroy")
 
-        _controller.cleanUp()
+        audioController.cleanUp()
+        fft.dispose()
     }
 
-    override fun update(dataList: ArrayList<ShortArray>) {
+    override fun update(dataList: ArrayList<DoubleArray>) {
         chartView.setData(dataList)
         chartView.invalidate()
     }
