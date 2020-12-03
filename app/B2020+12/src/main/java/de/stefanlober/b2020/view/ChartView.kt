@@ -25,6 +25,7 @@ class ChartView : View {
     private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
     private var backPaint: Paint = Paint()
+    private val path = Path()
 
     private fun init() {
         paint.color = Color.WHITE
@@ -33,7 +34,7 @@ class ChartView : View {
         paint.isAntiAlias = true
 
         backPaint.color = Color.GRAY
-        backPaint.strokeWidth = 3F
+        backPaint.strokeWidth = 5F
         backPaint.style = Paint.Style.STROKE
         backPaint.isAntiAlias = true
     }
@@ -45,18 +46,21 @@ class ChartView : View {
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
+        val start = System.currentTimeMillis()
+
         try {
-            val margin = 5F
-            val valueDivisor = 50F
+            val margin = 80F
+            val valueDivisor = 40F
             val stepHeight = (height / dataList!!.size).toFloat()
             val yScaleFactor = stepHeight / valueDivisor
-            val maxValue = 0.5F * height
-            val minValue = 5F
+            val maxValue = 0.4F * height
+            val minValue = 4F
 
             for (index in 0 until dataList!!.size) {
+                path.reset()
+
                 val data = dataList!![index]
-                val yCenter = (height * (dataList!!.size - index) / dataList!!.size).toFloat()
-                val path = Path()
+                val yCenter = (height - margin) * (dataList!!.size - index) / dataList!!.size + margin
                 path.moveTo(margin, yCenter)
                 val xScaleFactor = (width - 2 * margin) / data.size.toFloat()
 
@@ -84,5 +88,8 @@ class ChartView : View {
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "onDraw")
         }
+
+        val end = System.currentTimeMillis()
+        Logger.getLogger("B2020Logger").log(Level.INFO, "draw: " + (end - start).toString())
     }
 }
