@@ -25,6 +25,7 @@ class ChartView : View {
     private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
     private var backPaint: Paint = Paint()
+    private var erasePaint: Paint = Paint()
     private val path = Path()
 
     private fun init() {
@@ -37,6 +38,11 @@ class ChartView : View {
         backPaint.strokeWidth = 5F
         backPaint.style = Paint.Style.STROKE
         backPaint.isAntiAlias = true
+
+        erasePaint.color = Color.BLACK
+        //erasePaint.strokeWidth = 1F
+        erasePaint.style = Paint.Style.FILL
+        erasePaint.isAntiAlias = true
     }
 
     fun setData(dataList: ArrayList<DoubleArray>) {
@@ -49,14 +55,14 @@ class ChartView : View {
         val start = System.currentTimeMillis()
 
         try {
-            val margin = 80F
+            val margin = 50F
             val valueDivisor = 40F
             val stepHeight = (height / dataList!!.size).toFloat()
             val yScaleFactor = stepHeight / valueDivisor
             val maxValue = 0.4F * height
-            val minValue = 4F
+            val minValue = 2F
 
-            for (index in 0 until dataList!!.size) {
+            for (index in dataList!!.size - 1 downTo 0) {
                 path.reset()
 
                 val data = dataList!![index]
@@ -78,12 +84,13 @@ class ChartView : View {
                 //canvas!!.drawRect(0F, yCenter, width.toFloat(), yCenter + stepHeight, erasePaint)
 
                 path.lineTo(width - margin, yCenter)
+                canvas?.drawPath(path, erasePaint)
                 canvas?.drawPath(path, backPaint)
                 canvas?.drawPath(path, paint)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    canvas?.clipOutPath(path)
-                }
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    canvas?.clipOutPath(path)
+//                }
             }
         } catch (ex: Exception) {
             Logger.getLogger("B2020Logger").log(Level.WARNING, "onDraw")
