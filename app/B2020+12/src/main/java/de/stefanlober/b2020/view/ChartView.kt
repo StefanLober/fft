@@ -24,20 +24,14 @@ class ChartView : View {
 
     private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
-    private var backPaint: Paint = Paint()
     private var erasePaint: Paint = Paint()
     private val path = Path()
 
     private fun init() {
         paint.color = Color.WHITE
-        paint.strokeWidth = 1F
+        paint.strokeWidth = 2.5F
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
-
-        backPaint.color = Color.GRAY
-        backPaint.strokeWidth = 5F
-        backPaint.style = Paint.Style.STROKE
-        backPaint.isAntiAlias = true
 
         erasePaint.color = Color.BLACK
         //erasePaint.strokeWidth = 1F
@@ -50,17 +44,18 @@ class ChartView : View {
     }
 
     override fun onDraw(canvas: Canvas?) {
+        Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " onDraw " + Thread.currentThread().name)
+
         super.onDraw(canvas)
 
         val start = System.currentTimeMillis()
 
         try {
             val margin = 50F
-            val valueDivisor = 40F
+            val valueDivisor = 50F
             val stepHeight = (height / dataList!!.size).toFloat()
             val yScaleFactor = stepHeight / valueDivisor
-            val maxValue = 0.4F * height
-            val minValue = 2F
+            val maxValue = 0.5F * height
 
             for (index in dataList!!.size - 1 downTo 0) {
                 path.reset()
@@ -73,27 +68,17 @@ class ChartView : View {
                 for (i in 1 until data.size) {
                     val xCoord = margin + i.toFloat() * xScaleFactor
                     var scaledValue = min(maxValue, (data[i] * yScaleFactor).toFloat())
-                    if(scaledValue < minValue) {
-                        scaledValue = 0F
-                    }
                     val yCoord = yCenter - scaledValue
 
                     path.lineTo(xCoord, yCoord)
                 }
 
-                //canvas!!.drawRect(0F, yCenter, width.toFloat(), yCenter + stepHeight, erasePaint)
-
                 path.lineTo(width - margin, yCenter)
                 canvas?.drawPath(path, erasePaint)
-                canvas?.drawPath(path, backPaint)
                 canvas?.drawPath(path, paint)
-
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                    canvas?.clipOutPath(path)
-//                }
             }
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, "onDraw")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, System.currentTimeMillis().toString() + " onDraw")
         }
 
         val end = System.currentTimeMillis()

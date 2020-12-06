@@ -77,14 +77,10 @@ class FullscreenActivity : AppCompatActivity(), IView {
         fft.dispose()
     }
 
-    private val updateLock = Any()
-
     override fun update(dataList: ArrayList<DoubleArray>) {
-        synchronized(updateLock) {
-            chartView.post {
-                chartView.setData(dataList)
-                chartView.invalidate()
-            }
+        chartView.post {
+            chartView.setData(dataList)
+            chartView.invalidate()
         }
     }
 }

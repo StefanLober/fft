@@ -16,17 +16,18 @@ import java.util.logging.Logger
 class AudioController(private var view: IView, private var fftWrapper: FftWrapper) {
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
     private val channel = AudioFormat.CHANNEL_IN_MONO
-    private val sampleRate = 48000
+    private val sampleRate = 44100
 
-    private val listSize = 40
+    private val listSize = 50
 
     private var isActive: Boolean = false
 
     private var audioRecorder: AudioRecord? = null
     private lateinit var data: ShortArray
-    private var dataList: ArrayList<DoubleArray> = ArrayList()
+    private val dataList: ArrayList<DoubleArray> = ArrayList()
 
-    private val handler = Handler(Looper.getMainLooper())
+    private val audioExecutor = Executors.newSingleThreadExecutor()
+    private val processExecutor = Executors.newSingleThreadExecutor()
 
     fun init() {
         try {
@@ -77,11 +78,12 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     }
 
     private fun read() {
-        Executors.newSingleThreadExecutor { task -> Thread(task, "audio-thread") }.execute {
+        audioExecutor.submit {
             try {
                 while (isActive) {
                     val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
                     if (read > 0) {
+                        Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " processData " + Thread.currentThread().name)
                         processData(data)
                     }
                 }
@@ -92,14 +94,16 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     }
 
     private fun processData(data: ShortArray) {
-        Executors.newSingleThreadExecutor { task -> Thread(task, "process-thread") }.execute {
+        processExecutor.submit {
             try {
+                Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " calculate " + Thread.currentThread().name)
                 val scaledOutput = fftWrapper.calculate(data)
                 dataList.add(0, scaledOutput)
                 while (dataList.size > listSize)
                     dataList.removeAt(listSize)
 
-                handler.post { view.update(dataList) }
+                Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " view.update " + Thread.currentThread().name)
+                view.update(dataList)
             } catch (ex: Exception) {
                 Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
             }
