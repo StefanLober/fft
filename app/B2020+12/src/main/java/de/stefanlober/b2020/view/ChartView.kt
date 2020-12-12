@@ -2,7 +2,6 @@ package de.stefanlober.b2020.view
 
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import java.util.logging.Level
@@ -22,6 +21,8 @@ class ChartView : View {
         init()
     }
 
+    var xMarginFraction: Float = 0.02F
+    var yMarginFraction: Float = 0.32F
     private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
@@ -44,44 +45,50 @@ class ChartView : View {
     }
 
     override fun onDraw(canvas: Canvas?) {
-        Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " onDraw " + Thread.currentThread().name)
+        Logger.getLogger("B2020Logger").log(Level.INFO,  (System.currentTimeMillis() % 3600000).toString() + " onDraw")
 
         super.onDraw(canvas)
 
-        val start = System.currentTimeMillis()
+        //val start = System.currentTimeMillis()
 
         try {
-            val margin = 50F
             val valueDivisor = 50F
-            val stepHeight = (height / dataList!!.size).toFloat()
+
+            val xMargin = width * xMarginFraction
+            val yMargin = height * yMarginFraction
+
+            val count = dataList!!.size
+            val stepHeight = ((height - 2 * yMargin) / count).toFloat()
             val yScaleFactor = stepHeight / valueDivisor
-            val maxValue = 0.5F * height
+            val maxValue = 0.5F * (height - 2 * yMargin)
 
             for (index in dataList!!.size - 1 downTo 0) {
                 path.reset()
 
                 val data = dataList!![index]
-                val yCenter = (height - margin) * (dataList!!.size - index) / dataList!!.size + margin
-                path.moveTo(margin, yCenter)
-                val xScaleFactor = (width - 2 * margin) / data.size.toFloat()
+                val yCenter = (height - 2 * yMargin) * (count - index) / count + yMargin
+                path.moveTo(xMargin, yCenter)
+                val xScaleFactor = (width - 2 * xMargin) / data.size.toFloat()
 
-                for (i in 1 until data.size) {
-                    val xCoord = margin + i.toFloat() * xScaleFactor
-                    var scaledValue = min(maxValue, (data[i] * yScaleFactor).toFloat())
+                for (i in 1 until data.size - 1) {
+                    val xCoord = xMargin + i.toFloat() * xScaleFactor
+                    val scaledValue = min(maxValue, (data[i] * yScaleFactor).toFloat())
                     val yCoord = yCenter - scaledValue
-
                     path.lineTo(xCoord, yCoord)
                 }
 
-                path.lineTo(width - margin, yCenter)
+                path.lineTo(width - xMargin, yCenter)
                 canvas?.drawPath(path, erasePaint)
                 canvas?.drawPath(path, paint)
             }
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, System.currentTimeMillis().toString() + " onDraw")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " onDraw")
         }
 
-        val end = System.currentTimeMillis()
-        Logger.getLogger("B2020Logger").log(Level.INFO, "draw: " + (end - start).toString())
+        //val end = System.currentTimeMillis()
+        //Logger.getLogger("B2020Logger").log(Level.INFO, "draw: " + (end - start).toString())
+    }
+
+    private fun drawGraph(canvas: Canvas?, frameOffset: Int) {
     }
 }

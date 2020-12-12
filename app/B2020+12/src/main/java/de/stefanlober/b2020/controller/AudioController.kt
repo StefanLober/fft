@@ -3,17 +3,15 @@ package de.stefanlober.b2020.controller
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.os.Handler
-import android.os.Looper
 import de.stefanlober.b2020.FftWrapper
 import de.stefanlober.b2020.view.IView
-import fft.JniFft
-import java.lang.Math.sqrt
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class AudioController(private var view: IView, private var fftWrapper: FftWrapper) {
+    private var lastUpdateTime: Long = System.currentTimeMillis()
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
     private val channel = AudioFormat.CHANNEL_IN_MONO
     private val sampleRate = 44100
@@ -25,9 +23,6 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private var audioRecorder: AudioRecord? = null
     private lateinit var data: ShortArray
     private val dataList: ArrayList<DoubleArray> = ArrayList()
-
-    private val audioExecutor = Executors.newSingleThreadExecutor()
-    private val processExecutor = Executors.newSingleThreadExecutor()
 
     fun init() {
         try {
@@ -78,12 +73,12 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     }
 
     private fun read() {
-        audioExecutor.submit {
+        Executors.newSingleThreadExecutor(PriorityThreadFactory(Thread.NORM_PRIORITY + 1)).execute {
             try {
                 while (isActive) {
                     val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
                     if (read > 0) {
-                        Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " processData " + Thread.currentThread().name)
+                        //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " processData " + Thread.currentThread().name)
                         processData(data)
                     }
                 }
@@ -94,19 +89,28 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     }
 
     private fun processData(data: ShortArray) {
-        processExecutor.submit {
+        Executors.newSingleThreadExecutor(PriorityThreadFactory(Thread.NORM_PRIORITY + 1)).execute {
             try {
-                Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " calculate " + Thread.currentThread().name)
+                //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " calculate " + Thread.currentThread().name)
                 val scaledOutput = fftWrapper.calculate(data)
+
                 dataList.add(0, scaledOutput)
                 while (dataList.size > listSize)
                     dataList.removeAt(listSize)
 
-                Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " view.update " + Thread.currentThread().name)
+                Logger.getLogger("B2020Logger").log(Level.INFO,  (System.currentTimeMillis() % 3600000).toString() + " view.update ")
                 view.update(dataList)
             } catch (ex: Exception) {
                 Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
             }
+        }
+    }
+
+    private class PriorityThreadFactory(val priority: Int) : ThreadFactory {
+        override fun newThread(runnable: Runnable): Thread {
+            var thread = Thread(runnable)
+            thread.priority = priority
+            return thread
         }
     }
 }
