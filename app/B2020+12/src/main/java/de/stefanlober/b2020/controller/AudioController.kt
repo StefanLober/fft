@@ -1,12 +1,12 @@
 package de.stefanlober.b2020.controller
 
+import de.stefanlober.b2020.PriorityThreadFactory
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import de.stefanlober.b2020.FftWrapper
 import de.stefanlober.b2020.view.IView
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -103,14 +103,6 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
             } catch (ex: Exception) {
                 Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
             }
-        }
-    }
-
-    private class PriorityThreadFactory(val priority: Int) : ThreadFactory {
-        override fun newThread(runnable: Runnable): Thread {
-            var thread = Thread(runnable)
-            thread.priority = priority
-            return thread
         }
     }
 }

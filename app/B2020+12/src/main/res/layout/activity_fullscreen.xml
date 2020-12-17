@@ -7,7 +7,7 @@
     android:background="#000000"
     tools:context=".view.FullscreenActivity">
 
-    <de.stefanlober.b2020.view.ChartView
+    <de.stefanlober.b2020.view.ChartSurfaceView
         android:keepScreenOn="true"
         android:id="@+id/chart_view"
         android:layout_width="match_parent"

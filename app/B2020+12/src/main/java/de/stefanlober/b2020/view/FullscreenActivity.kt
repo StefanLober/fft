@@ -19,7 +19,7 @@ import java.util.logging.Logger
 
 
 class FullscreenActivity : AppCompatActivity(), IView {
-    private lateinit var chartView: ChartView
+    private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
@@ -102,7 +102,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
     override fun update(dataList: ArrayList<DoubleArray>) {
         chartView.post {
             chartView.setData(dataList)
-            chartView.invalidate()
+            //chartView.invalidate()
         }
     }
 }
