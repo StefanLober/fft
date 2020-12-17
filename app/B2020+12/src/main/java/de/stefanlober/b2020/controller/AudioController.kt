@@ -16,7 +16,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private val channel = AudioFormat.CHANNEL_IN_MONO
     private val sampleRate = 44100
 
-    private val listSize = 50
+    private val listSize = 40
 
     private var isActive: Boolean = false
 
@@ -24,32 +24,28 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private lateinit var data: ShortArray
     private val dataList: ArrayList<DoubleArray> = ArrayList()
 
-    fun init() {
-        try {
-            audioRecorder = AudioRecord.Builder()
-                .setAudioSource(MediaRecorder.AudioSource.MIC)
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setEncoding(encoding)
-                        .setSampleRate(sampleRate)
-                        .setChannelMask(channel)
-                        .build()
-                )
-                .build()
-        } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, "init")
-        }
-    }
-
     fun start() {
         try {
+            if(audioRecorder == null) {
+                audioRecorder = AudioRecord.Builder()
+                    .setAudioSource(MediaRecorder.AudioSource.MIC)
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(encoding)
+                            .setSampleRate(sampleRate)
+                            .setChannelMask(channel)
+                            .build()
+                    )
+                    .build()
+            }
+
             data = ShortArray(AudioRecord.getMinBufferSize(sampleRate, channel, encoding))
             audioRecorder?.startRecording()
             isActive = true
 
             read()
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, "start")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, "start", ex)
         }
     }
 
@@ -58,7 +54,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
             audioRecorder?.stop()
             isActive = false
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, "stop")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, "stop", ex)
         }
     }
 
@@ -68,49 +64,48 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
             audioRecorder?.release()
             audioRecorder = null
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, "cleanUp")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, "cleanUp", ex)
         }
     }
 
     private fun read() {
-        Executors.newSingleThreadExecutor(PriorityThreadFactory(Thread.NORM_PRIORITY + 1)).execute {
-            try {
-                while (isActive) {
-                    val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
-                    if (read > 0) {
-                        //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " processData " + Thread.currentThread().name)
-                        processData(data)
+        Thread {
+            run {
+                try {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+
+                    while (isActive) {
+                        val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
+                        if (read > 0) {
+                            //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " processData " + Thread.currentThread().name)
+                            processData(data)
+                        }
                     }
+                } catch (ex: Exception) {
+                    Logger.getLogger("B2020Logger").log(Level.WARNING, "read", ex)
                 }
-            } catch (ex: Exception) {
-                Logger.getLogger("B2020Logger").log(Level.WARNING, "read")
             }
-        }
+        }.start()
     }
 
     private fun processData(data: ShortArray) {
-        Executors.newSingleThreadExecutor(PriorityThreadFactory(Thread.NORM_PRIORITY + 1)).execute {
-            try {
-                //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " calculate " + Thread.currentThread().name)
-                val scaledOutput = fftWrapper.calculate(data)
+        Thread {
+            run {
+                try {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_MORE_FAVORABLE);
+                    //Logger.getLogger("B2020Logger").log(Level.INFO,  System.currentTimeMillis().toString() + " calculate " + Thread.currentThread().name)
+                    val scaledOutput = fftWrapper.calculate(data)
 
-                dataList.add(0, scaledOutput)
-                while (dataList.size > listSize)
-                    dataList.removeAt(listSize)
+                    dataList.add(0, scaledOutput)
+                    while (dataList.size > listSize)
+                        dataList.removeAt(listSize)
 
-                Logger.getLogger("B2020Logger").log(Level.INFO,  (System.currentTimeMillis() % 3600000).toString() + " view.update ")
-                view.update(dataList)
-            } catch (ex: Exception) {
-                Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
+                    Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " view.update ")
+                    view.update(dataList)
+                } catch (ex: Exception) {
+                    Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
+                }
             }
-        }
-    }
-
-    private class PriorityThreadFactory(val priority: Int) : ThreadFactory {
-        override fun newThread(runnable: Runnable): Thread {
-            var thread = Thread(runnable)
-            thread.priority = priority
-            return thread
-        }
+        }.start()
     }
 }

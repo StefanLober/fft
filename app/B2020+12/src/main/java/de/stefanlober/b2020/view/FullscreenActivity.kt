@@ -2,7 +2,6 @@ package de.stefanlober.b2020.view
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
@@ -16,7 +15,6 @@ import fft.IFft
 import fft.JniFft
 import java.util.logging.Level
 import java.util.logging.Logger
-
 
 class FullscreenActivity : AppCompatActivity(), IView {
     private lateinit var chartView: ChartView
@@ -32,10 +30,17 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
         Logger.getLogger("B2020Logger").log(Level.INFO, "onCreate")
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
+            ActivityCompat.requestPermissions(this, permissions,0)
+        }
+
         setContentView(R.layout.activity_fullscreen)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.hide()
 
         chartView = findViewById(R.id.chart_view)
+        setMargin(resources.configuration.orientation)
 
         fft = JniFft(fftSize)
         fftWrapper = FftWrapper(fft, fftSize, cutOff)
@@ -43,27 +48,11 @@ class FullscreenActivity : AppCompatActivity(), IView {
         audioController = AudioController(this, fftWrapper)
     }
 
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-
-        Logger.getLogger("B2020Logger").log(Level.INFO, "onPostCreate")
-
-        setMargin(resources.configuration.orientation)
-        supportActionBar?.hide()
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
-            ActivityCompat.requestPermissions(this, permissions,0)
-        }
-
-        Thread.currentThread().priority = Thread.MAX_PRIORITY - 1
-
-        audioController.init()
-    }
-
     override fun onResume() {
         super.onResume()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onResume")
+
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY);
 
         audioController.start()
     }
@@ -90,12 +79,12 @@ class FullscreenActivity : AppCompatActivity(), IView {
     }
 
     private fun setMargin(orientation: Int) {
-        if (orientation === Configuration.ORIENTATION_LANDSCAPE) {
-            chartView.xMarginFraction = 0.12F
-            chartView.yMarginFraction = 0.2F
-        } else if (orientation === Configuration.ORIENTATION_PORTRAIT) {
-            chartView.xMarginFraction = 0.02F
-            chartView.yMarginFraction = 0.32F
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            chartView.xMarginFraction = ChartView.portraitXMargin
+            chartView.yMarginFraction = ChartView.portraitYMargin
+        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            chartView.xMarginFraction = ChartView.landscapeXMargin
+            chartView.yMarginFraction = ChartView.landscapeYMargin
         }
     }
 

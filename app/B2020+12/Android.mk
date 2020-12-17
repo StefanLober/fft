@@ -7,5 +7,6 @@ LOCAL_SRC_FILES := ../../ooura/ooura.cpp
 
 LOCAL_CFLAGS    += -O3
 LOCAL_CPPFLAGS  += -O3
+LOCAL_LDLIBS := -llog
 
 include $(BUILD_SHARED_LIBRARY)

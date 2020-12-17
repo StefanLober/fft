@@ -21,8 +21,16 @@ class ChartView : View {
         init()
     }
 
-    var xMarginFraction: Float = 0.02F
-    var yMarginFraction: Float = 0.32F
+    companion object {
+        const val portraitXMargin = 0.07F
+        const val portraitYMargin = 0.32F
+        const val landscapeXMargin = 0.15F
+        const val landscapeYMargin = 0.2F
+    }
+
+    var xMarginFraction: Float = landscapeXMargin
+    var yMarginFraction: Float = landscapeYMargin
+
     private var dataList: ArrayList<DoubleArray>? = null
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
@@ -30,14 +38,14 @@ class ChartView : View {
 
     private fun init() {
         paint.color = Color.WHITE
-        paint.strokeWidth = 2.5F
+        paint.strokeWidth = 1.5F * getResources().getDisplayMetrics().density;
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
         erasePaint.color = Color.BLACK
         //erasePaint.strokeWidth = 1F
         erasePaint.style = Paint.Style.FILL
-        erasePaint.isAntiAlias = true
+        //erasePaint.isAntiAlias = true
     }
 
     fun setData(dataList: ArrayList<DoubleArray>) {
@@ -58,7 +66,7 @@ class ChartView : View {
             val yMargin = height * yMarginFraction
 
             val count = dataList!!.size
-            val stepHeight = ((height - 2 * yMargin) / count).toFloat()
+            val stepHeight = (height - 2 * yMargin) / count
             val yScaleFactor = stepHeight / valueDivisor
             val maxValue = 0.5F * (height - 2 * yMargin)
 
@@ -72,7 +80,8 @@ class ChartView : View {
 
                 for (i in 1 until data.size - 1) {
                     val xCoord = xMargin + i.toFloat() * xScaleFactor
-                    val scaledValue = min(maxValue, (data[i] * yScaleFactor).toFloat())
+                    var scaledValue = (data[i] * yScaleFactor).toFloat()
+                    scaledValue = min(maxValue, scaledValue)
                     val yCoord = yCenter - scaledValue
                     path.lineTo(xCoord, yCoord)
                 }
@@ -87,8 +96,5 @@ class ChartView : View {
 
         //val end = System.currentTimeMillis()
         //Logger.getLogger("B2020Logger").log(Level.INFO, "draw: " + (end - start).toString())
-    }
-
-    private fun drawGraph(canvas: Canvas?, frameOffset: Int) {
     }
 }
