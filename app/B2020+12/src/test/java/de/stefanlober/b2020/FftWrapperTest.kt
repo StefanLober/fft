@@ -31,7 +31,7 @@ class FftWrapperTest {
     fun fft_sin_frequency1() {
         val data = ShortArray(dataSize)
         for (i in data.indices) {
-            data[i] = (amplitude * Math.sin(2 * Math.PI * i / fftSize)).toShort()
+            data[i] = (amplitude * Math.sin(2 * Math.PI * i / dataSize)).toShort()
         }
 
         var scaledOutput = fftWrapper.calculate(data)

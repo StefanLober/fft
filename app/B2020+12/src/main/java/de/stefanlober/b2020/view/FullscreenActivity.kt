@@ -17,12 +17,12 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class FullscreenActivity : AppCompatActivity(), IView {
-    private lateinit var chartView: ChartView
+    private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
     private val fftSize = 8192
-    private val cutOff = 190
+    private val cutOff = 180
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +39,8 @@ class FullscreenActivity : AppCompatActivity(), IView {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.hide()
 
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
+
         chartView = findViewById(R.id.chart_view)
         setMargin(resources.configuration.orientation)
 
@@ -51,8 +53,6 @@ class FullscreenActivity : AppCompatActivity(), IView {
     override fun onResume() {
         super.onResume()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onResume")
-
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY);
 
         audioController.start()
     }
@@ -80,18 +80,21 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
     private fun setMargin(orientation: Int) {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            chartView.xMarginFraction = ChartView.portraitXMargin
-            chartView.yMarginFraction = ChartView.portraitYMargin
+            chartView.xMarginFraction = ChartSurfaceView.portraitXMargin
+            chartView.yMarginFraction = ChartSurfaceView.portraitYMargin
+            chartView.listSize = ChartSurfaceView.portraitListSize
         } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            chartView.xMarginFraction = ChartView.landscapeXMargin
-            chartView.yMarginFraction = ChartView.landscapeYMargin
+            chartView.xMarginFraction = ChartSurfaceView.landscapeXMargin
+            chartView.yMarginFraction = ChartSurfaceView.landscapeYMargin
+            chartView.listSize = ChartSurfaceView.landscapeListSize
         }
     }
 
-    override fun update(dataList: ArrayList<DoubleArray>) {
-        chartView.post {
-            chartView.setData(dataList)
-            chartView.invalidate()
-        }
+    override fun update(data: DoubleArray) {
+        chartView.setData(data)
+    }
+
+    override fun setAudioParams(sampleRate: Int, minBufferSize: Int) {
+        chartView.setAudioParams(sampleRate, minBufferSize)
     }
 }
