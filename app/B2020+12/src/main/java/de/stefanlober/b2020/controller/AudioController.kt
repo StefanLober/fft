@@ -13,7 +13,7 @@ import java.util.logging.Logger
 class AudioController(private var view: IView, private var fftWrapper: FftWrapper) {
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
     private val channel = AudioFormat.CHANNEL_IN_MONO
-    private val sampleRate = 8000
+    private val sampleRate = 22050
 
     private var isActive: Boolean = false
 

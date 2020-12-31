@@ -7,7 +7,7 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
     private var output = DoubleArray(2 * cutOff)
     private var scaledOutput = DoubleArray(cutOff)
 
-    fun calculate(data: ShortArray): DoubleArray {
+    fun calculate(data: ShortArray, logX: Boolean, logY: Boolean): DoubleArray {
         val scaleFactor = data.size / input.size.toDouble()
 
         for (i in input.indices) {

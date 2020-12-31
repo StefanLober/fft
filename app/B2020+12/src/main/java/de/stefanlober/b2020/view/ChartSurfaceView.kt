@@ -25,11 +25,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     companion object {
-        const val portraitXMargin = 0.07F
+        const val portraitXMargin = 0.05F
         const val portraitYMargin = 0.1F
         const val portraitListSize = 75
 
-        const val landscapeXMargin = 0.15F
+        const val landscapeXMargin = 0.05F
         const val landscapeYMargin = 0.05F
         const val landscapeListSize = 45
     }
@@ -54,13 +54,16 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var threadRunning = false
 
-    private val valueDivisor = 100F
-    private val maxValueFactor = 8F
+    private val valueDivisor = 80F
+    private val maxValueFactor = 10F
     private var bitmapCanvas: Canvas? = null
+
+    private var dataTime = 80
+    private var frameTime = 16
 
     private fun init() {
         paint.color = Color.WHITE
-        paint.strokeWidth = 0.7F * resources.displayMetrics.density
+        paint.strokeWidth = resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
@@ -75,9 +78,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         holder.setFormat(PixelFormat.RGB_565)
     }
 
-    private var dataTime = 80
-    private var frameTime = 16
-
     override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
         threadRunning = true
 
@@ -90,7 +90,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         val startTime = System.currentTimeMillis()
 
                         stepHeight = (height / listSize).toFloat()
-                        val translateY = -round(stepHeight / (dataTime / frameTime))
+                        val translateY = -(stepHeight / (dataTime / frameTime))
                         //Logger.getLogger("B2020Logger").log(Level.INFO, System.currentTimeMillis().toString() + " translateY: " + translateY)
 
                         calculateMargins()

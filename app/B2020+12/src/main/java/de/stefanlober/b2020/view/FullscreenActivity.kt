@@ -22,7 +22,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
     private val fftSize = 8192
-    private val cutOff = 180
+    private val cutOff = 640
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
