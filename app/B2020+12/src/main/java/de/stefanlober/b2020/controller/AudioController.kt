@@ -98,7 +98,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
         processExecutor.submit {
             try {
                 Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " calculate")
-                val scaledOutput = fftWrapper.calculate(processBuffer)
+                val scaledOutput = fftWrapper.calculate(processBuffer, true, true)
 
                 Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " view.update")
                 view.update(scaledOutput)
@@ -112,7 +112,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
 private class PriorityThreadFactory(val priority: Int) : ThreadFactory {
     override fun newThread(runnable: Runnable?): Thread {
         val thread = Thread(runnable)
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
+        android.os.Process.setThreadPriority(priority)
         return thread
     }
 }

@@ -22,7 +22,9 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
     private val fftSize = 8192
-    private val cutOff = 640
+    private val cutOff = 720
+    private val meanCount = 4
+    private val logYTarget = 400.0
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +47,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
         setMargin(resources.configuration.orientation)
 
         fft = JniFft(fftSize)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logYTarget)
 
         audioController = AudioController(this, fftWrapper)
     }

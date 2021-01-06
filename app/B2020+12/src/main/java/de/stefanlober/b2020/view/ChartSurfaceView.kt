@@ -10,7 +10,6 @@ import java.util.logging.Logger
 import kotlin.math.min
 import kotlin.math.round
 
-
 class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     constructor(context: Context) : this(context, null) {
         init()
@@ -25,9 +24,9 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     companion object {
-        const val portraitXMargin = 0.05F
+        const val portraitXMargin = 0.01F
         const val portraitYMargin = 0.1F
-        const val portraitListSize = 75
+        const val portraitListSize = 70
 
         const val landscapeXMargin = 0.05F
         const val landscapeYMargin = 0.05F
@@ -54,7 +53,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var threadRunning = false
 
-    private val valueDivisor = 80F
+    private val valueDivisor = 100F
     private val maxValueFactor = 10F
     private var bitmapCanvas: Canvas? = null
 

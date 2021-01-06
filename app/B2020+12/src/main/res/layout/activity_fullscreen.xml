@@ -8,8 +8,8 @@
     tools:context=".view.FullscreenActivity">
 
     <de.stefanlober.b2020.view.ChartSurfaceView
-        android:keepScreenOn="true"
         android:id="@+id/chart_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"/>
 </FrameLayout>
