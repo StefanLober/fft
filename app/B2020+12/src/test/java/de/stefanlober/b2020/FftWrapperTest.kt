@@ -5,6 +5,7 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import kotlin.math.sin
 
 class FftWrapperTest {
     private lateinit var fft: TestFft
@@ -15,13 +16,16 @@ class FftWrapperTest {
     private val cutOff = 100
     private val dataSize = 2500
     private val amplitude = 3000
+    private val meanCount = 4
+    private val logXTarget = 100.0
+    private val logYTarget = 250.0
 
     private var outputValues = DoubleArray(4)
 
     @Before
     fun setUp() {
         fft = TestFft(outputValues)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff,)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXTarget, logYTarget)
     }
 
     @After
@@ -33,12 +37,14 @@ class FftWrapperTest {
     fun fft_sin_frequency1_amp1() {
         val data = ShortArray(dataSize)
         for (i in data.indices) {
-            data[i] = (amplitude * Math.sin(2 * Math.PI * i / dataSize)).toShort()
+            data[i] = (amplitude * sin(2 * Math.PI * i / dataSize)).toShort()
         }
 
         outputValues[3] = (fftSize / 2).toDouble()
 
-        var scaledOutput = fftWrapper.calculate(data, false, false)
+        fftWrapper.logX = false
+        fftWrapper.logY = false
+        val scaledOutput = fftWrapper.calculate(data)
 
         Assert.assertEquals(0.0, scaledOutput[0], delta)
         Assert.assertEquals(1.0, scaledOutput[1], delta)
@@ -48,12 +54,14 @@ class FftWrapperTest {
     fun fft_sin_frequency1_amp1_logY() {
         val data = ShortArray(dataSize)
         for (i in data.indices) {
-            data[i] = (amplitude * Math.sin(2 * Math.PI * i / dataSize)).toShort()
+            data[i] = (amplitude * sin(2 * Math.PI * i / dataSize)).toShort()
         }
 
         outputValues[3] = (fftSize / 2).toDouble()
 
-        var scaledOutput = fftWrapper.calculate(data, false, true)
+        fftWrapper.logX = false
+        fftWrapper.logY = true
+        val scaledOutput = fftWrapper.calculate(data)
 
         Assert.assertEquals(0.0, scaledOutput[0], delta)
         Assert.assertEquals(0.0, scaledOutput[1], delta)
@@ -63,15 +71,17 @@ class FftWrapperTest {
     fun fft_sin_frequency1_max_logY() {
         val data = ShortArray(dataSize)
         for (i in data.indices) {
-            data[i] = (amplitude * Math.sin(2 * Math.PI * i / dataSize)).toShort()
+            data[i] = (amplitude * sin(2 * Math.PI * i / dataSize)).toShort()
         }
 
-        outputValues[3] = fftWrapper.maxY * fftSize / 2
+        outputValues[3] = logYTarget * fftSize / 2
 
-        var scaledOutput = fftWrapper.calculate(data, false, true)
+        fftWrapper.logX = false
+        fftWrapper.logY = true
+        val scaledOutput = fftWrapper.calculate(data)
 
         Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(fftWrapper.maxY, scaledOutput[1], delta)
+        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
     }
 }
 

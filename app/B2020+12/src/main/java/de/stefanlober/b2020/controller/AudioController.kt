@@ -98,7 +98,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
         processExecutor.submit {
             try {
                 Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " calculate")
-                val scaledOutput = fftWrapper.calculate(processBuffer, true, true)
+                val scaledOutput = fftWrapper.calculate(processBuffer)
 
                 Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " view.update")
                 view.update(scaledOutput)

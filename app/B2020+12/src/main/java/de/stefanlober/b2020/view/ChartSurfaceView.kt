@@ -1,10 +1,13 @@
 package de.stefanlober.b2020.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.min
@@ -26,12 +29,18 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     companion object {
         const val portraitXMargin = 0.01F
         const val portraitYMargin = 0.1F
-        const val portraitListSize = 70
+        const val portraitListSize = 80
 
-        const val landscapeXMargin = 0.05F
+        const val landscapeXMargin = 0.02F
         const val landscapeYMargin = 0.05F
-        const val landscapeListSize = 45
+        const val landscapeListSize = 50
     }
+
+    private val valueDivisor = 40F
+    private val maxValueFactor = 10F
+
+    private var dataTime = 80
+    private var frameTime = 16
 
     private val lock: Any = Any()
     var xMarginFraction: Float = landscapeXMargin
@@ -52,21 +61,19 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private var path = Path()
 
     private var threadRunning = false
-
-    private val valueDivisor = 100F
-    private val maxValueFactor = 10F
     private var bitmapCanvas: Canvas? = null
 
-    private var dataTime = 80
-    private var frameTime = 16
+    lateinit var xScaleChange: (() -> Unit)
+    lateinit var yScaleChange: (() -> Unit)
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun init() {
-        paint.color = Color.WHITE
+        paint.color = Color.GRAY
         paint.strokeWidth = resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
-        erasePaint.color = Color.DKGRAY
+        erasePaint.color = Color.WHITE
         erasePaint.style = Paint.Style.FILL
         //erasePaint.isAntiAlias = true
 
@@ -75,6 +82,33 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
         holder.addCallback(this)
         holder.setFormat(PixelFormat.RGB_565)
+
+        setOnTouchListener { v, event ->
+            when (event?.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    try {
+                        Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " touch x=" + event.x + " y=" + event.y)
+                        if (event.y < height / 3) {
+                            swapColors()
+                        } else if (event.x < width / 2) {
+                            xScaleChange.invoke()
+                        } else {
+                            yScaleChange.invoke()
+                        }
+                    } catch (ex: Exception) {
+                        Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " sleep", ex)
+                    }
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
+    }
+
+    private fun swapColors() {
+        val paintColor = paint.color
+        paint.color = erasePaint.color
+        erasePaint.color = paintColor
     }
 
     override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
@@ -88,7 +122,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                     while (threadRunning) {
                         val startTime = System.currentTimeMillis()
 
-                        stepHeight = (height / listSize).toFloat()
+                        stepHeight = ((height - 2 * yMargin) / listSize)
                         val translateY = -(stepHeight / (dataTime / frameTime))
                         //Logger.getLogger("B2020Logger").log(Level.INFO, System.currentTimeMillis().toString() + " translateY: " + translateY)
 
@@ -152,7 +186,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                 path.lineTo(xCoord, yCoord)
             }
 
-            path.lineTo(canvasBitmap!!.width.toFloat(), yCenter)
+            //path.lineTo(canvasBitmap!!.width.toFloat(), yCenter)
 
             synchronized(lock) {
                 bitmapCanvas?.drawPath(path, erasePaint)

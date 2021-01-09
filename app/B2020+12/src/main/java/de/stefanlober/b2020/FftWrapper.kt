@@ -4,13 +4,16 @@ import fft.IFft
 import kotlin.math.log10
 import kotlin.math.sqrt
 
-class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cutOff: Int, private val meanCount: Int, logYTarget: Double) {
+class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cutOff: Int, private val meanCount: Int, logXTarget: Double, logYTarget: Double) {
+    var logX: Boolean = true
+    var logY: Boolean = true
     private var input = DoubleArray(fftSize)
     private var output = DoubleArray(2 * cutOff)
     private var scaledOutput = DoubleArray(cutOff / meanCount)
+    private val logXScaleFactor = logXTarget / log10(logXTarget)
     private val logYScaleFactor = logYTarget / log10(logYTarget)
 
-    fun calculate(data: ShortArray, logX: Boolean, logY: Boolean): DoubleArray {
+    fun calculate(data: ShortArray): DoubleArray {
         val scaleFactor = data.size / input.size.toDouble()
 
         for (i in input.indices) {
@@ -34,12 +37,24 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
             scaledOutput[i] = sum / meanCount
         }
 
+        if (logX) {
+            for (i in 1 until scaledOutput.size) {
+                val indexDouble = logXScaleFactor * log10(i.toDouble())
+                val index = indexDouble.toInt()
+                if (index + 1 < scaledOutput.size) {
+                    scaledOutput[i] = scaledOutput[index] * (1 + index - indexDouble) + scaledOutput[index + 1] * (indexDouble - index)
+                } else {
+                    scaledOutput[i] = scaledOutput[index].toDouble()
+                }
+            }
+        }
+
         if (logY) {
             for (i in 0 until scaledOutput.size) {
                 if (scaledOutput[i] < 1.0) {
                     scaledOutput[i] = 1.0
                 }
-                scaledOutput[i] = logYScaleFactor * Math.log10(scaledOutput[i])
+                scaledOutput[i] = logYScaleFactor * log10(scaledOutput[i])
             }
         }
 

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,14 +18,19 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class FullscreenActivity : AppCompatActivity(), IView {
+    private val fftSize = 8192
+    private val cutOff = 720
+    private val meanCount = 4
+    private val logXTarget = 100.0
+    private val logYTarget = 250.0
+
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
-    private val fftSize = 8192
-    private val cutOff = 720
-    private val meanCount = 4
-    private val logYTarget = 400.0
+
+    private val xScaleChange: () -> Unit = { fftWrapper.logX = !fftWrapper.logX }
+    private val yScaleChange: () -> Unit = { fftWrapper.logY = !fftWrapper.logY }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,10 +50,12 @@ class FullscreenActivity : AppCompatActivity(), IView {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
 
         chartView = findViewById(R.id.chart_view)
+        chartView.xScaleChange = xScaleChange
+        chartView.yScaleChange = yScaleChange
         setMargin(resources.configuration.orientation)
 
         fft = JniFft(fftSize)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logYTarget)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXTarget, logYTarget)
 
         audioController = AudioController(this, fftWrapper)
     }
