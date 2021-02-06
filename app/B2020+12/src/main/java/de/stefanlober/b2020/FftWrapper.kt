@@ -1,6 +1,7 @@
 package de.stefanlober.b2020
 
 import fft.IFft
+import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -30,7 +31,9 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
 
         fft.calculate(input, output, cutOff)
 
-        for (i in 0 until scaledOutput.size) {
+        scaledOutput[0] = abs(output[0]) / fftSize
+
+        for (i in 1 until scaledOutput.size) {
 //            var sum = 0.0
 //            for (offset in 0 until meanCount) {
 //                val index = 2 * (i * meanCount + offset)

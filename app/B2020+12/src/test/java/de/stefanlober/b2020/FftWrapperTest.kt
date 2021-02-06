@@ -200,7 +200,14 @@ class FftWrapperTest {
 
     private fun writeCsv(values: DoubleArray, fileName: String) {
         try {
-            PrintWriter(File(fileName)).use { writer ->
+            val directoryName = "output"
+            val directory = File(directoryName)
+            if (!directory.exists()) {
+                directory.mkdir()
+            }
+
+            val file = File("$directoryName/$fileName")
+            PrintWriter(file).use { writer ->
                 for(value in values) {
                     writer.write(value.toString() + "\n")
                 }

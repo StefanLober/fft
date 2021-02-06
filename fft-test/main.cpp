@@ -55,12 +55,13 @@ int main()
     ofstream resultFile("result.csv");
 
     double* output = oouras[0].get()->data();
-    for (int x = 0; x < LENGTH; x++)
+
+    resultFile << input[0] << ";" << abs(output[0]) / LENGTH;
+
+    for (int x = 1; x < LENGTH; x++)
     {
         resultFile << input[x] << ";";
-        if (x == 0)
-            resultFile << output[0] / LENGTH;
-        else if(x < 2 * CUT_OFF)
+        if(x < 2 * CUT_OFF)
             resultFile << sqrt(output[x * 2] * output[x * 2] + output[x * 2 + 1] * output[x * 2 + 1]) * 2 / LENGTH;
 
         resultFile << endl;
