@@ -20,9 +20,9 @@ import java.util.logging.Logger
 class FullscreenActivity : AppCompatActivity(), IView {
     private val fftSize = 8192
     private val cutOff = 720
-    private val meanCount = 4
-    private val logXTarget = 100.0
-    private val logYTarget = 250.0
+    private val meanCount = 1
+    private val logXTarget = 720.0
+    private val logYTarget = 300.0
 
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController

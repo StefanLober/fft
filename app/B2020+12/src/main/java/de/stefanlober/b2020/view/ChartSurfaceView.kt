@@ -68,7 +68,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
-        paint.color = Color.GRAY
+        paint.color = Color.DKGRAY
         paint.strokeWidth = resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true

@@ -29,30 +29,44 @@ class JniFftTest {
     }
 
     @Test
-    fun fft_sin_frequency1() {
+    fun sin_frequency1() {
         for (i in input.indices) {
             input[i] = sin(2 * PI * i / input.size)
         }
 
         fft.calculate(input, output, cutOff)
 
-        Assert.assertEquals(0.0, output[0] / (fftSize/2), delta)
-        Assert.assertEquals(0.0, output[1] / (fftSize/2), delta)
-        Assert.assertEquals(0.0, output[2] / (fftSize/2), delta)
-        Assert.assertEquals(1.0, output[3] / (fftSize/2), delta)
+        Assert.assertEquals(0.0, output[0] / (fftSize / 2), delta)
+        Assert.assertEquals(0.0, output[1] / (fftSize / 2), delta)
+        Assert.assertEquals(0.0, output[2] / (fftSize / 2), delta)
+        Assert.assertEquals(1.0, output[3] / (fftSize / 2), delta)
     }
 
     @Test
-    fun fft_cos_frequency1() {
+    fun cos_frequency1() {
         for (i in input.indices) {
             input[i] = cos(2 * PI * i / input.size)
         }
 
         fft.calculate(input, output, cutOff)
 
-        Assert.assertEquals(0.0, output[0] / (fftSize/2), delta)
-        Assert.assertEquals(0.0, output[1] / (fftSize/2), delta)
+        Assert.assertEquals(0.0, output[0] / (fftSize / 2), delta)
+        Assert.assertEquals(0.0, output[1] / (fftSize / 2), delta)
         Assert.assertEquals(1.0, output[2] / (fftSize / 2), delta)
-        Assert.assertEquals(0.0, output[3] / (fftSize/2), delta)
+        Assert.assertEquals(0.0, output[3] / (fftSize / 2), delta)
+    }
+
+    @Test
+    fun const1() {
+        for (i in input.indices) {
+            input[i] = 1.0
+        }
+
+        fft.calculate(input, output, cutOff)
+
+        Assert.assertEquals(1.0, output[0] / fftSize, delta)
+        Assert.assertEquals(0.0, output[1] / (fftSize / 2), delta)
+        Assert.assertEquals(0.0, output[2] / (fftSize / 2), delta)
+        Assert.assertEquals(0.0, output[3] / (fftSize / 2), delta)
     }
 }
