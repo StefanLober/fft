@@ -35,7 +35,7 @@ int main()
         double* input = oouras[i].get()->data();
         for (int x = 0; x < LENGTH; x++)
         {
-            input[x] = 2 * sin(x * (double)2 * M_PI / (double)LENGTH) + sin((double)2 * x * (double)2 * M_PI / (double)LENGTH);
+            input[x] = 1;//2 * sin(x * (double)2 * M_PI / (double)LENGTH) + sin((double)2 * x * (double)2 * M_PI / (double)LENGTH);
         }
     }
 
@@ -58,7 +58,9 @@ int main()
     for (int x = 0; x < LENGTH; x++)
     {
         resultFile << input[x] << ";";
-        if(x < 2 * CUT_OFF)
+        if (x == 0)
+            resultFile << output[0] / LENGTH;
+        else if(x < 2 * CUT_OFF)
             resultFile << sqrt(output[x * 2] * output[x * 2] + output[x * 2 + 1] * output[x * 2 + 1]) * 2 / LENGTH;
 
         resultFile << endl;
