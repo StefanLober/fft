@@ -3,14 +3,15 @@ package de.stefanlober.b2020.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
-import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 
 class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     constructor(context: Context) : this(context, null) {
@@ -21,29 +22,38 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         init()
     }
 
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
-        context,
-        attrs,
-        defStyleAttr
-    ) {
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         init()
     }
 
     companion object {
-        const val portraitListSize = 100
+        const val portraitXMargin = 0.01F
+        const val portraitYMargin = 0.1F
+        const val portraitListSize = 80
 
-        const val landscapeListSize = 45
+        const val landscapeXMargin = 0.02F
+        const val landscapeYMargin = 0.05F
+        const val landscapeListSize = 50
     }
 
-    private var maxValueStepCount = 300
+    private val valueDivisor = 40F
+    private val maxValueFactor = 10F
 
-    private var translateYSum: Float = 0F
+    private var dataTime = 80
+    private var frameTime = 16
 
-    private var dataTimeNs = 80 * 1000000L
-
+    private val lock: Any = Any()
+    var xMarginFraction: Float = landscapeXMargin
+    var yMarginFraction: Float = landscapeYMargin
     var listSize = landscapeListSize
 
+    private var xMargin: Float = 0F
+    private var yMargin: Float = 0F
+    private var marginWidth: Int = 0
+    private var marginHeight: Int = 0
+
     private var stepHeight: Float = 0F
+    private var canvasBitmap: Bitmap? = null
 
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
@@ -51,24 +61,21 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private var path = Path()
 
     private var threadRunning = false
+    private var bitmapCanvas: Canvas? = null
 
-    var bitmapCanvas: Canvas? = null
-    var canvasBitmap: Bitmap? = null
-
-    var bitmapCanvas2: Canvas? = null
-    var canvasBitmap2: Bitmap? = null
-
-    private var bitmap2Active = false
+    lateinit var xScaleChange: (() -> Unit)
+    lateinit var yScaleChange: (() -> Unit)
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
-        paint.color = Color.rgb(70, 70, 70)
-        paint.strokeWidth = 1.0F * resources.displayMetrics.density
+        paint.color = Color.DKGRAY
+        paint.strokeWidth = resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
         erasePaint.color = Color.WHITE
         erasePaint.style = Paint.Style.FILL
+        //erasePaint.isAntiAlias = true
 
         isFocusable = false
         setZOrderOnTop(true)
@@ -80,9 +87,16 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     try {
-                        swapColors()
+                        Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " touch x=" + event.x + " y=" + event.y)
+                        if (event.y < height / 3) {
+                            swapColors()
+                        } else if (event.x < width / 2) {
+                            xScaleChange.invoke()
+                        } else {
+                            yScaleChange.invoke()
+                        }
                     } catch (ex: Exception) {
-                        Logger.getLogger("B2020Logger").log(Level.WARNING," MotionEvent.ACTION_DOWN", ex)
+                        Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " sleep", ex)
                     }
                 }
             }
@@ -101,38 +115,41 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         threadRunning = true
 
         Thread {
-            var lastTimeNs = System.nanoTime()
-            Process.setThreadPriority(-10)
-
-            stepHeight = height / listSize.toFloat()
-
             run {
                 try {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
+
                     while (threadRunning) {
-                        createBitmap()
+                        val startTime = System.currentTimeMillis()
 
-                        val timeNs = System.nanoTime()
-                        val deltaTimeNs = timeNs - lastTimeNs
-                        lastTimeNs = timeNs
+                        stepHeight = ((height - 2 * yMargin) / listSize)
+                        val translateY = -(stepHeight / (dataTime / frameTime))
+                        //Logger.getLogger("B2020Logger").log(Level.INFO, System.currentTimeMillis().toString() + " translateY: " + translateY)
 
-                        val canvas = holder.lockHardwareCanvas()
-                        try {
-                            synchronized(holder) {
-                                val translateY = -stepHeight * deltaTimeNs / dataTimeNs
-                                //Logger.getLogger("B2020Logger").log(Level.INFO, ("translateY: " +  translateY))
-                                translateYSum += translateY
+                        calculateMargins()
 
-                                if (bitmap2Active)
-                                    canvas?.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
-                                else
-                                    canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
+                        synchronized(lock) {
+                            bitmapCanvas!!.drawBitmap(canvasBitmap!!, 0F, translateY, erasePaint)
+                            bitmapCanvas!!.drawRect(0F, bitmapCanvas!!.height + translateY, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
+                        }
+
+                        val canvas = holder.lockCanvas()
+                        canvas?.drawColor(erasePaint.color)
+                        canvas?.drawBitmap(canvasBitmap!!, xMargin, yMargin, erasePaint)
+                        holder.unlockCanvasAndPost(canvas)
+
+                        val endTime = System.currentTimeMillis()
+                        val deltaTime = endTime - startTime
+                        if (deltaTime < frameTime) {
+                            try {
+                                Thread.sleep(frameTime - deltaTime)
+                            } catch (ex: InterruptedException) {
+                                Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " sleep", ex)
                             }
-                        } finally {
-                            holder.unlockCanvasAndPost(canvas)
                         }
                     }
                 } catch (ex: Exception) {
-                    Logger.getLogger("B2020Logger").log(Level.WARNING, " draw")
+                    Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " draw")
                 }
             }
         }.start()
@@ -146,81 +163,65 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     fun setData(data: DoubleArray) {
-        synchronized(holder) {
-            //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
-            if (bitmap2Active) {
-                bitmapCanvas!!.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
-                bitmapCanvas!!.drawRect(0F,bitmapCanvas2!!.height + translateYSum, bitmapCanvas2!!.width.toFloat(), bitmapCanvas2!!.height.toFloat(), erasePaint)
+        Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " setData")
 
-                drawData(data, bitmapCanvas!!)
-                canvasBitmap!!.prepareToDraw()
-            } else {
-                bitmapCanvas2!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                bitmapCanvas2!!.drawRect(0F,bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
-
-                drawData(data, bitmapCanvas2!!)
-                canvasBitmap2!!.prepareToDraw()
-            }
-
-            bitmap2Active = !bitmap2Active
-            translateYSum = 0F
-        }
-    }
-
-    private fun drawData(data: DoubleArray, canvas: Canvas?) {
         try {
-            stepHeight = (height / listSize).toFloat()
-            val yScaleFactor = maxValueStepCount * stepHeight / Short.MAX_VALUE
+            calculateMargins()
+
+            stepHeight = ((canvasBitmap!!.height / listSize).toFloat())
+            val yScaleFactor = stepHeight / valueDivisor
+            val maxValue = maxValueFactor * stepHeight
 
             path.reset()
 
-            val yCenter = height - paint.strokeWidth
+            val yCenter = canvasBitmap!!.height - paint.strokeWidth
             path.moveTo(0F, yCenter)
-
-            val xScaleFactor = width / data.size.toFloat()
+            val xScaleFactor = (canvasBitmap!!.width) / data.size.toFloat()
 
             for (i in 1 until data.size - 1) {
                 val xCoord = i.toFloat() * xScaleFactor
-                val scaledValue = max((data[i] * yScaleFactor).toFloat(), 0F)
+                var scaledValue = (data[i] * yScaleFactor).toFloat()
+                scaledValue = min(maxValue, scaledValue)
                 val yCoord = yCenter - scaledValue
                 path.lineTo(xCoord, yCoord)
             }
 
             //path.lineTo(canvasBitmap!!.width.toFloat(), yCenter)
 
-            canvas?.drawPath(path, erasePaint)
-            canvas?.drawPath(path, paint)
+            synchronized(lock) {
+                bitmapCanvas?.drawPath(path, erasePaint)
+                bitmapCanvas?.drawPath(path, paint)
+            }
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, " drawData")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " draw")
         }
     }
 
-    private fun createBitmap() {
+    private fun calculateMargins() {
+        xMargin = width * xMarginFraction
+        yMargin = height * yMarginFraction
+        marginWidth = (width - 2 * xMargin).toInt()
+        marginHeight = (height - 2 * yMargin).toInt()
+
         try {
-            if (canvasBitmap == null || canvasBitmap!!.width != width || canvasBitmap!!.height != height) {
-                canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            if (canvasBitmap == null || canvasBitmap!!.width != marginWidth || canvasBitmap!!.height != marginHeight) {
+                canvasBitmap = Bitmap.createBitmap(marginWidth, marginHeight, Bitmap.Config.RGB_565)
                 bitmapCanvas = Canvas(canvasBitmap!!)
                 bitmapCanvas!!.drawColor(erasePaint.color)
-
-                canvasBitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-                bitmapCanvas2 = Canvas(canvasBitmap2!!)
-                bitmapCanvas2!!.drawColor(erasePaint.color)
-
-                holder.setFixedSize(width, height)
             }
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, " createBitmap")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " calculateMargins")
         }
     }
 
     fun setAudioParams(sampleRate: Int, minBufferSize: Int) {
         try {
             synchronized(holder) {
-                dataTimeNs = (1000 * 1000000L * minBufferSize) / sampleRate
-                Logger.getLogger("B2020Logger").log(Level.WARNING, " dataTime: " + dataTimeNs)
+                dataTime = (1000 * minBufferSize) / sampleRate
+                Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " dataTime: " + dataTime)
             }
         } catch (ex: Exception) {
-            Logger.getLogger("B2020Logger").log(Level.WARNING, " setMinBufferSize")
+            Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " setMinBufferSize")
         }
     }
 }
