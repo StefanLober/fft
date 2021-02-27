@@ -13,7 +13,7 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
     private val output = DoubleArray(2 * cutOff)
     private val scaledOutput = DoubleArray(cutOff / meanCount)
     private val scaledOutputCopy = DoubleArray(cutOff / meanCount)
-    private val logXScaleFactor = log10(logXTarget) / (cutOff / meanCount)
+    private val logXScaleFactor = log10(cutOff.toDouble()) / (cutOff / meanCount)
     private val logYScaleFactor = logYTarget / log10(logYTarget)
 
     fun calculate(data: ShortArray): DoubleArray {
