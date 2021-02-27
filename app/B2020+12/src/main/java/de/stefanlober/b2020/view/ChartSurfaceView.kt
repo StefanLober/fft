@@ -28,19 +28,18 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     companion object {
         const val portraitXMargin = 0.01F
-        const val portraitYMargin = 0.1F
+        const val portraitYMargin = 0.05F
         const val portraitListSize = 80
 
         const val landscapeXMargin = 0.02F
-        const val landscapeYMargin = 0.05F
+        const val landscapeYMargin = 0.05f
         const val landscapeListSize = 50
     }
 
-    private val valueDivisor = 40F
+    private val valueDivisor = 50F
     private val maxValueFactor = 10F
 
     private var dataTime = 80
-    private var frameTime = 16
 
     private val lock: Any = Any()
     var xMarginFraction: Float = landscapeXMargin
@@ -115,15 +114,19 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         threadRunning = true
 
         Thread {
+            var lastTime = System.currentTimeMillis()
+
             run {
                 try {
                     android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
 
                     while (threadRunning) {
-                        val startTime = System.currentTimeMillis()
+                        val time = System.currentTimeMillis()
+                        val deltaTime = time - lastTime
+                        lastTime = time
 
                         stepHeight = ((height - 2 * yMargin) / listSize)
-                        val translateY = -(stepHeight / (dataTime / frameTime))
+                        val translateY = -stepHeight * deltaTime / dataTime
                         //Logger.getLogger("B2020Logger").log(Level.INFO, System.currentTimeMillis().toString() + " translateY: " + translateY)
 
                         calculateMargins()
@@ -137,16 +140,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         canvas?.drawColor(erasePaint.color)
                         canvas?.drawBitmap(canvasBitmap!!, xMargin, yMargin, erasePaint)
                         holder.unlockCanvasAndPost(canvas)
-
-                        val endTime = System.currentTimeMillis()
-                        val deltaTime = endTime - startTime
-                        if (deltaTime < frameTime) {
-                            try {
-                                Thread.sleep(frameTime - deltaTime)
-                            } catch (ex: InterruptedException) {
-                                Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " sleep", ex)
-                            }
-                        }
                     }
                 } catch (ex: Exception) {
                     Logger.getLogger("B2020Logger").log(Level.WARNING, (System.currentTimeMillis() % 3600000).toString() + " draw")
