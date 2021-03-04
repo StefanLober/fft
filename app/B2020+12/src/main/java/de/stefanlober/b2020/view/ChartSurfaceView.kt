@@ -27,13 +27,9 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     companion object {
-        const val portraitXMargin = 0.01F
-        const val portraitYMargin = 0.05F
         const val portraitListSize = 80
 
-        const val landscapeXMargin = 0.02F
-        const val landscapeYMargin = 0.05f
-        const val landscapeListSize = 50
+        const val landscapeListSize = 60
     }
 
     private val valueDivisor = 50F
@@ -42,14 +38,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private var dataTime = 80
 
     private val lock: Any = Any()
-    var xMarginFraction: Float = landscapeXMargin
-    var yMarginFraction: Float = landscapeYMargin
     var listSize = landscapeListSize
-
-    private var xMargin: Float = 0F
-    private var yMargin: Float = 0F
-    private var marginWidth: Int = 0
-    private var marginHeight: Int = 0
 
     private var stepHeight: Float = 0F
     private var canvasBitmap: Bitmap? = null
@@ -67,7 +56,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
-        paint.color = Color.DKGRAY
+        paint.color = (Color.DKGRAY + Color.GRAY) / 2
         paint.strokeWidth = resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
@@ -80,7 +69,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         setZOrderOnTop(true)
 
         holder.addCallback(this)
-        holder.setFormat(PixelFormat.RGB_565)
+        holder.setFormat(PixelFormat.RGBA_8888)
 
         setOnTouchListener { v, event ->
             when (event?.action) {
@@ -125,7 +114,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         val deltaTime = time - lastTime
                         lastTime = time
 
-                        stepHeight = ((height - 2 * yMargin) / listSize)
+                        stepHeight = height / listSize.toFloat()
                         val translateY = -stepHeight * deltaTime / dataTime
                         //Logger.getLogger("B2020Logger").log(Level.INFO, System.currentTimeMillis().toString() + " translateY: " + translateY)
 
@@ -137,8 +126,8 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         }
 
                         val canvas = holder.lockCanvas()
-                        canvas?.drawColor(erasePaint.color)
-                        canvas?.drawBitmap(canvasBitmap!!, xMargin, yMargin, erasePaint)
+                        //canvas?.drawColor(erasePaint.color)
+                        canvas?.drawBitmap(canvasBitmap!!, 0F, 0F, erasePaint)
                         holder.unlockCanvasAndPost(canvas)
                     }
                 } catch (ex: Exception) {
@@ -159,7 +148,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " setData")
 
         try {
-            calculateMargins()
+            //calculateMargins()
 
             stepHeight = ((canvasBitmap!!.height / listSize).toFloat())
             val yScaleFactor = stepHeight / valueDivisor
@@ -169,6 +158,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
             val yCenter = canvasBitmap!!.height - paint.strokeWidth
             path.moveTo(0F, yCenter)
+
             val xScaleFactor = (canvasBitmap!!.width) / data.size.toFloat()
 
             for (i in 1 until data.size - 1) {
@@ -191,14 +181,9 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     private fun calculateMargins() {
-        xMargin = width * xMarginFraction
-        yMargin = height * yMarginFraction
-        marginWidth = (width - 2 * xMargin).toInt()
-        marginHeight = (height - 2 * yMargin).toInt()
-
         try {
-            if (canvasBitmap == null || canvasBitmap!!.width != marginWidth || canvasBitmap!!.height != marginHeight) {
-                canvasBitmap = Bitmap.createBitmap(marginWidth, marginHeight, Bitmap.Config.RGB_565)
+            if (canvasBitmap == null || canvasBitmap!!.width != width || canvasBitmap!!.height != height) {
+                canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 bitmapCanvas = Canvas(canvasBitmap!!)
                 bitmapCanvas!!.drawColor(erasePaint.color)
             }

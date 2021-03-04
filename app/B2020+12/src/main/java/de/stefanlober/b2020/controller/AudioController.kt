@@ -83,7 +83,7 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
                     while (isActive) {
                         val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
                         if (read > 0) {
-                            Logger.getLogger("B2020Logger").log(Level.INFO,  (System.currentTimeMillis() % 3600000).toString() + " processData")
+                            //Logger.getLogger("B2020Logger").log(Level.INFO,  (System.currentTimeMillis() % 3600000).toString() + " processData")
                             processData(data.copyInto(processBuffer))
                         }
                     }
@@ -97,10 +97,10 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private fun processData(processBuffer: ShortArray) {
         processExecutor.submit {
             try {
-                Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " calculate")
+                //Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " calculate")
                 val scaledOutput = fftWrapper.calculate(processBuffer)
 
-                Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " view.update")
+                //Logger.getLogger("B2020Logger").log(Level.INFO, (System.currentTimeMillis() % 3600000).toString() + " view.update")
                 view.update(scaledOutput)
             } catch (ex: Exception) {
                 Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)

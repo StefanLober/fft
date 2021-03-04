@@ -90,12 +90,8 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
     private fun setMargin(orientation: Int) {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            chartView.xMarginFraction = ChartSurfaceView.portraitXMargin
-            chartView.yMarginFraction = ChartSurfaceView.portraitYMargin
             chartView.listSize = ChartSurfaceView.portraitListSize
         } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            chartView.xMarginFraction = ChartSurfaceView.landscapeXMargin
-            chartView.yMarginFraction = ChartSurfaceView.landscapeYMargin
             chartView.listSize = ChartSurfaceView.landscapeListSize
         }
     }
