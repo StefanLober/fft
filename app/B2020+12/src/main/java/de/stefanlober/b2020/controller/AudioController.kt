@@ -13,7 +13,7 @@ import java.util.logging.Logger
 class AudioController(private var view: IView, private var fftWrapper: FftWrapper) {
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
     private val channel = AudioFormat.CHANNEL_IN_MONO
-    private val sampleRate = 22050
+    private val sampleRate = 44100
 
     private var isActive: Boolean = false
 
@@ -21,12 +21,10 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private lateinit var data: ShortArray
     private lateinit var processBuffer: ShortArray
 
-    private val processExecutor = Executors.newSingleThreadExecutor(PriorityThreadFactory(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO))
+    private val processExecutor = Executors.newSingleThreadExecutor()
 
     fun start() {
         try {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
-
             if(audioRecorder == null) {
                 audioRecorder = AudioRecord.Builder()
                     .setAudioSource(MediaRecorder.AudioSource.DEFAULT)
@@ -77,8 +75,6 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
     private fun read() {
         Thread {
             run {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
-
                 try {
                     while (isActive) {
                         val read = audioRecorder!!.read(data, 0, data.size, AudioRecord.READ_BLOCKING)
@@ -106,13 +102,5 @@ class AudioController(private var view: IView, private var fftWrapper: FftWrappe
                 Logger.getLogger("B2020Logger").log(Level.WARNING, "callback", ex)
             }
         }
-    }
-}
-
-private class PriorityThreadFactory(val priority: Int) : ThreadFactory {
-    override fun newThread(runnable: Runnable?): Thread {
-        val thread = Thread(runnable)
-        android.os.Process.setThreadPriority(priority)
-        return thread
     }
 }

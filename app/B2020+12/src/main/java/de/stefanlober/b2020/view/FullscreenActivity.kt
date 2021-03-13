@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.MotionEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -47,12 +46,9 @@ class FullscreenActivity : AppCompatActivity(), IView {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.hide()
 
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
-
         chartView = findViewById(R.id.chart_view)
         chartView.xScaleChange = xScaleChange
         chartView.yScaleChange = yScaleChange
-        setMargin(resources.configuration.orientation)
 
         fft = JniFft(fftSize)
         fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXTarget, logYTarget)
@@ -84,16 +80,6 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-
-        setMargin(newConfig.orientation)
-    }
-
-    private fun setMargin(orientation: Int) {
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            chartView.listSize = ChartSurfaceView.portraitListSize
-        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            chartView.listSize = ChartSurfaceView.landscapeListSize
-        }
     }
 
     override fun update(data: DoubleArray) {
