@@ -114,18 +114,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                     while (threadRunning) {
                         createBitmap()
 
-                        synchronized(bitmapCanvas!!) {
-                            if (data != null) {
-                                //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
-                                bitmapCanvas!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                                bitmapCanvas!!.drawRect(0F, bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
-                                translateYSum = 0F
-
-                                drawData(data!!, bitmapCanvas!!)
-                                data = null
-                            }
-                        }
-
                         val timeNs = System.nanoTime()
                         val deltaTimeNs = timeNs - lastTimeNs
                         lastTimeNs = timeNs
@@ -134,9 +122,24 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         //Logger.getLogger("B2020Logger").log(Level.INFO, ("translateY: " +  translateY))
                         translateYSum += translateY
 
-                        val canvas = holder.lockCanvas()
-                        canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                        canvas?.drawRect(0F, canvas.height + translateYSum, canvas.width.toFloat(), canvas.height.toFloat(), erasePaint)
+                        synchronized(bitmapCanvas!!) {
+                            if (data != null) {
+                                drawData(data!!, bitmapCanvas!!)
+                                data = null
+                            }
+                        }
+
+                        //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
+                        bitmapCanvas!!.drawBitmap(canvasBitmap!!, 0F, translateY, null)
+                        bitmapCanvas!!.drawRect(0F, bitmapCanvas!!.height + translateY, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
+                        translateYSum = 0F
+
+                        val canvas = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            holder.lockHardwareCanvas()
+                        } else {
+                            holder.lockCanvas()
+                        }
+                        canvas?.drawBitmap(canvasBitmap!!, 0F, 0F, null)
                         holder.unlockCanvasAndPost(canvas)
                     }
                 } catch (ex: Exception) {
