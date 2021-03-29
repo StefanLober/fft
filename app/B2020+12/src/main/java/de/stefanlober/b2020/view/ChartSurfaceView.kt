@@ -31,18 +31,15 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         const val landscapeListSize = 45
     }
 
-    private var data: DoubleArray? = null
     private var translateYSum: Float = 0F
-    private val valueDivisor = 50F
+    private val valueDivisor = 80F
     private val maxValueFactor = 10F
 
     private var dataTimeNs = 80 * 1000000L
-    private var minFrameTimeNs = 30 * 1000000L
 
     var listSize = landscapeListSize
 
     private var stepHeight: Float = 0F
-    private var canvasBitmap: Bitmap? = null
 
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
@@ -50,7 +47,14 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private var path = Path()
 
     private var threadRunning = false
-    private var bitmapCanvas: Canvas? = null
+
+    var bitmapCanvas: Canvas? = null
+    var canvasBitmap: Bitmap? = null
+
+    var bitmapCanvas2: Canvas? = null
+    var canvasBitmap2: Bitmap? = null
+
+    private var bitmap2Active = false
 
     lateinit var xScaleChange: (() -> Unit)
     lateinit var yScaleChange: (() -> Unit)
@@ -64,7 +68,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
         erasePaint.color = Color.WHITE
         erasePaint.style = Paint.Style.FILL
-        //erasePaint.isAntiAlias = true
 
         isFocusable = false
         setZOrderOnTop(true)
@@ -118,30 +121,22 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         val deltaTimeNs = timeNs - lastTimeNs
                         lastTimeNs = timeNs
 
-                        val translateY = -stepHeight * deltaTimeNs / dataTimeNs
-                        //Logger.getLogger("B2020Logger").log(Level.INFO, ("translateY: " +  translateY))
-                        translateYSum += translateY
-
                         val canvas = holder.lockHardwareCanvas()
                         try {
-                            canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                            //canvas?.drawRect(0F, canvas.height + translateYSum, canvas.width.toFloat(), canvas.height.toFloat(), erasePaint)
+                            synchronized(holder) {
+                                val translateY = -stepHeight * deltaTimeNs / dataTimeNs
+                                //Logger.getLogger("B2020Logger").log(Level.INFO, ("translateY: " +  translateY))
+                                translateYSum += translateY
+
+                                if(bitmap2Active)
+                                    canvas?.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
+                                else
+                                    canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
+                                //canvas?.drawRect(0F, canvas.height + translateYSum, canvas.width.toFloat(), canvas.height.toFloat(), erasePaint)
+                            }
                         }
                         finally {
                             holder.unlockCanvasAndPost(canvas)
-                        }
-
-                        synchronized(holder) {
-                            if (data != null) {
-                                //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
-                                bitmapCanvas!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                                bitmapCanvas!!.drawRect(0F, bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
-                                translateYSum = 0F
-
-                                drawData(data!!, bitmapCanvas!!)
-                                canvasBitmap!!.prepareToDraw()
-                                data = null
-                            }
                         }
                     }
                 } catch (ex: Exception) {
@@ -160,7 +155,24 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     fun setData(data: DoubleArray) {
         synchronized(holder) {
-            this.data = data
+            //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
+            if(bitmap2Active) {
+                bitmapCanvas!!.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
+                bitmapCanvas!!.drawRect(0F, bitmapCanvas2!!.height + translateYSum, bitmapCanvas2!!.width.toFloat(), bitmapCanvas2!!.height.toFloat(), erasePaint)
+
+                drawData(data, bitmapCanvas!!)
+                canvasBitmap!!.prepareToDraw()
+            }
+            else {
+                bitmapCanvas2!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
+                bitmapCanvas2!!.drawRect(0F, bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
+
+                drawData(data, bitmapCanvas2!!)
+                canvasBitmap2!!.prepareToDraw()
+            }
+
+            bitmap2Active = !bitmap2Active
+            translateYSum = 0F
         }
     }
 
@@ -201,6 +213,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                 canvasBitmap!!.setHasAlpha(false)
                 bitmapCanvas = Canvas(canvasBitmap!!)
                 bitmapCanvas!!.drawColor(erasePaint.color)
+
+                canvasBitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                canvasBitmap2!!.setHasAlpha(false)
+                bitmapCanvas2 = Canvas(canvasBitmap2!!)
+                bitmapCanvas2!!.drawColor(erasePaint.color)
 
                 holder.setFixedSize(width, height)
             }
