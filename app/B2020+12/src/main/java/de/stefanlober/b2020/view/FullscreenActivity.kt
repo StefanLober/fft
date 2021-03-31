@@ -20,8 +20,12 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private val fftSize = 8192
     private val cutOff = 720
     private val meanCount = 1
-    private val logXTarget = 720.0
-    private val logYTarget = 300.0
+    private val logXMinY = 1.0
+    private val logXMaxX = cutOff.toDouble()
+    private val logXMaxY = cutOff.toDouble()
+    private val logYMinX = 1.0
+    private val logYMaxX = Short.MAX_VALUE.toDouble()
+    private val logYMaxY = Short.MAX_VALUE.toDouble()
 
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
@@ -51,7 +55,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
         chartView.yScaleChange = yScaleChange
 
         fft = JniFft(fftSize)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXTarget, logYTarget)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXMinY, logXMaxX, logXMaxY, logYMinX, logYMaxX, logYMaxY)
 
         audioController = AudioController(this, fftWrapper)
     }
