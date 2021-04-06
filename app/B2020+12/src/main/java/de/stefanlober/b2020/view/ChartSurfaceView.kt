@@ -2,15 +2,19 @@ package de.stefanlober.b2020.view
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.*
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.FrameLayout
+import androidx.core.view.marginLeft
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.min
+
 
 class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     constructor(context: Context) : this(context, null) {
@@ -21,7 +25,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         init()
     }
 
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
         init()
     }
 
@@ -43,6 +51,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
+    private var blurPaint: Paint = Paint()
 
     private var path = Path()
 
@@ -56,18 +65,22 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var bitmap2Active = false
 
+    private val blurRectSize = 4F * resources.displayMetrics.density
+
     lateinit var xScaleChange: (() -> Unit)
     lateinit var yScaleChange: (() -> Unit)
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
         paint.color = Color.DKGRAY
-        paint.strokeWidth = 1.5F * resources.displayMetrics.density
+        paint.strokeWidth = 1.2F * resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
         erasePaint.color = Color.WHITE
         erasePaint.style = Paint.Style.FILL
+
+        blurPaint.maskFilter = BlurMaskFilter(blurRectSize / 2, BlurMaskFilter.Blur.NORMAL)
 
         isFocusable = false
         setZOrderOnTop(true)
@@ -79,7 +92,10 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     try {
-                        Logger.getLogger("B2020Logger").log(Level.INFO, " touch x=" + event.x + " y=" + event.y)
+                        Logger.getLogger("B2020Logger").log(
+                            Level.INFO,
+                            " touch x=" + event.x + " y=" + event.y
+                        )
                         if (event.y < height / 3) {
                             swapColors()
                         } else if (event.x < width / 2) {
@@ -88,7 +104,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                             yScaleChange.invoke()
                         }
                     } catch (ex: Exception) {
-                        Logger.getLogger("B2020Logger").log(Level.WARNING, " sleep", ex)
+                        Logger.getLogger("B2020Logger").log(
+                            Level.WARNING,
+                            " MotionEvent.ACTION_DOWN",
+                            ex
+                        )
                     }
                 }
             }
@@ -121,21 +141,41 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         val deltaTimeNs = timeNs - lastTimeNs
                         lastTimeNs = timeNs
 
-                        val canvas = holder.lockHardwareCanvas()
+                        val canvas =
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                holder.lockHardwareCanvas()
+                            } else {
+                                holder.lockCanvas()
+                            }
                         try {
                             synchronized(holder) {
                                 val translateY = -stepHeight * deltaTimeNs / dataTimeNs
                                 //Logger.getLogger("B2020Logger").log(Level.INFO, ("translateY: " +  translateY))
                                 translateYSum += translateY
 
-                                if(bitmap2Active)
+                                if (bitmap2Active)
                                     canvas?.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
                                 else
                                     canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                                //canvas?.drawRect(0F, canvas.height + translateYSum, canvas.width.toFloat(), canvas.height.toFloat(), erasePaint)
+
+                                canvas?.drawRect(0F, 0F, width.toFloat(), blurRectSize, blurPaint)
+                                canvas?.drawRect(0F, 0F, blurRectSize, height.toFloat(), blurPaint)
+                                canvas?.drawRect(
+                                    0F,
+                                    height - blurRectSize,
+                                    width.toFloat(),
+                                    height.toFloat(),
+                                    blurPaint
+                                )
+                                canvas?.drawRect(
+                                    width - blurRectSize,
+                                    0F,
+                                    width.toFloat(),
+                                    height - blurRectSize,
+                                    blurPaint
+                                )
                             }
-                        }
-                        finally {
+                        } finally {
                             holder.unlockCanvasAndPost(canvas)
                         }
                     }
@@ -156,16 +196,27 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     fun setData(data: DoubleArray) {
         synchronized(holder) {
             //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
-            if(bitmap2Active) {
+            if (bitmap2Active) {
                 bitmapCanvas!!.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
-                bitmapCanvas!!.drawRect(0F, bitmapCanvas2!!.height + translateYSum, bitmapCanvas2!!.width.toFloat(), bitmapCanvas2!!.height.toFloat(), erasePaint)
+                bitmapCanvas!!.drawRect(
+                    0F,
+                    bitmapCanvas2!!.height + translateYSum,
+                    bitmapCanvas2!!.width.toFloat(),
+                    bitmapCanvas2!!.height.toFloat(),
+                    erasePaint
+                )
 
                 drawData(data, bitmapCanvas!!)
                 canvasBitmap!!.prepareToDraw()
-            }
-            else {
+            } else {
                 bitmapCanvas2!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                bitmapCanvas2!!.drawRect(0F, bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
+                bitmapCanvas2!!.drawRect(
+                    0F,
+                    bitmapCanvas!!.height + translateYSum,
+                    bitmapCanvas!!.width.toFloat(),
+                    bitmapCanvas!!.height.toFloat(),
+                    erasePaint
+                )
 
                 drawData(data, bitmapCanvas2!!)
                 canvasBitmap2!!.prepareToDraw()

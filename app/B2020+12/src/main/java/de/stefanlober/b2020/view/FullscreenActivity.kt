@@ -5,6 +5,9 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -43,7 +46,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
-            ActivityCompat.requestPermissions(this, permissions,0)
+            ActivityCompat.requestPermissions(this, permissions, 0)
         }
 
         setContentView(R.layout.activity_fullscreen)
