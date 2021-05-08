@@ -15,7 +15,7 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
     private val scaledOutputCopy = DoubleArray(cutOff / meanCount)
     private val logXA = logXMinY
     private val logXB = log10(logXMaxY / logXMinY) / logXMaxX
-    private val logYA = logYMaxX / log10(logYMaxX / logYMinX)
+    private val logYA = logYMaxY / log10(logYMaxX / logYMinX)
     private val logYB = 1 / logYMinX
 
     var logX: Boolean = true

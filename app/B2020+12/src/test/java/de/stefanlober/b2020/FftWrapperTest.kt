@@ -13,7 +13,7 @@ class FftWrapperTest {
     private lateinit var fft: TestFft
     private lateinit var fftWrapper: FftWrapper
 
-    private val delta = 0.001
+    private val delta = 10.0
     private val fftSize = 8192
     private val cutOff = 720
     private val dataSize = 2500
@@ -22,7 +22,7 @@ class FftWrapperTest {
     private val logXMinY = 1.0
     private val logXMaxX = cutOff.toDouble()
     private val logXMaxY = cutOff.toDouble()
-    private val logYMinX = 1.0
+    private val logYMinX = 100.0
     private val logYMaxX = Short.MAX_VALUE.toDouble()
     private val logYMaxY = Short.MAX_VALUE.toDouble()
 
@@ -179,8 +179,10 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies() {
+        val factor = logYMaxX / cutOff
+
         for (i in 0 until cutOff) {
-            outputValues[2 * i] = (i * fftSize / 2).toDouble()
+            outputValues[2 * i] = (i * factor * fftSize / 2)
         }
 
         fftWrapper.logX = false
@@ -195,8 +197,10 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies_logX() {
+        val factor = logYMaxX / cutOff
+
         for (i in 0 until cutOff) {
-            outputValues[2 * i] = (i * fftSize / 2).toDouble()
+            outputValues[2 * i] = (i * factor * fftSize / 2)
         }
 
         fftWrapper.logX = true
@@ -211,8 +215,10 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies_logY() {
+        val factor = logYMaxX / cutOff
+
         for (i in 0 until cutOff) {
-            outputValues[2 * i] = (i * fftSize / 2).toDouble()
+            outputValues[2 * i] = (i * factor * fftSize / 2)
         }
 
         fftWrapper.logX = false
@@ -222,13 +228,15 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies_logY.csv")
 
 //        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
+        Assert.assertEquals(logYMaxY, scaledOutput[cutOff - 1], delta)
     }
 
     @Test
     fun linear_frequencies_logX_logY() {
+        val factor = logYMaxX / cutOff
+
         for (i in 0 until cutOff) {
-            outputValues[2 * i] = (i * fftSize / 2).toDouble()
+            outputValues[2 * i] = (i * factor * fftSize / 2)
         }
 
         fftWrapper.logX = true
