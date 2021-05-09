@@ -92,10 +92,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     try {
-                        Logger.getLogger("B2020Logger").log(
-                            Level.INFO,
-                            " touch x=" + event.x + " y=" + event.y
-                        )
+                        Logger.getLogger("B2020Logger").log(Level.INFO," touch x=" + event.x + " y=" + event.y)
                         if (event.y < height / 3) {
                             swapColors()
                         } else if (event.x < width / 2) {
@@ -104,11 +101,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                             yScaleChange.invoke()
                         }
                     } catch (ex: Exception) {
-                        Logger.getLogger("B2020Logger").log(
-                            Level.WARNING,
-                            " MotionEvent.ACTION_DOWN",
-                            ex
-                        )
+                        Logger.getLogger("B2020Logger").log(Level.WARNING," MotionEvent.ACTION_DOWN", ex)
                     }
                 }
             }
@@ -160,20 +153,8 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
                                 canvas?.drawRect(0F, 0F, width.toFloat(), blurRectSize, blurPaint)
                                 canvas?.drawRect(0F, 0F, blurRectSize, height.toFloat(), blurPaint)
-                                canvas?.drawRect(
-                                    0F,
-                                    height - blurRectSize,
-                                    width.toFloat(),
-                                    height.toFloat(),
-                                    blurPaint
-                                )
-                                canvas?.drawRect(
-                                    width - blurRectSize,
-                                    0F,
-                                    width.toFloat(),
-                                    height - blurRectSize,
-                                    blurPaint
-                                )
+                                canvas?.drawRect(0F,height - blurRectSize, width.toFloat(), height.toFloat(), blurPaint)
+                                canvas?.drawRect(width - blurRectSize,0F, width.toFloat(),height - blurRectSize, blurPaint)
                             }
                         } finally {
                             holder.unlockCanvasAndPost(canvas)
@@ -198,25 +179,13 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
             //Logger.getLogger("B2020Logger").log(Level.INFO, " setData; translateYSum: $translateYSum")
             if (bitmap2Active) {
                 bitmapCanvas!!.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
-                bitmapCanvas!!.drawRect(
-                    0F,
-                    bitmapCanvas2!!.height + translateYSum,
-                    bitmapCanvas2!!.width.toFloat(),
-                    bitmapCanvas2!!.height.toFloat(),
-                    erasePaint
-                )
+                bitmapCanvas!!.drawRect(0F,bitmapCanvas2!!.height + translateYSum, bitmapCanvas2!!.width.toFloat(), bitmapCanvas2!!.height.toFloat(), erasePaint)
 
                 drawData(data, bitmapCanvas!!)
                 canvasBitmap!!.prepareToDraw()
             } else {
                 bitmapCanvas2!!.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-                bitmapCanvas2!!.drawRect(
-                    0F,
-                    bitmapCanvas!!.height + translateYSum,
-                    bitmapCanvas!!.width.toFloat(),
-                    bitmapCanvas!!.height.toFloat(),
-                    erasePaint
-                )
+                bitmapCanvas2!!.drawRect(0F,bitmapCanvas!!.height + translateYSum, bitmapCanvas!!.width.toFloat(), bitmapCanvas!!.height.toFloat(), erasePaint)
 
                 drawData(data, bitmapCanvas2!!)
                 canvasBitmap2!!.prepareToDraw()
