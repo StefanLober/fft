@@ -51,7 +51,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var paint: Paint = Paint()
     private var erasePaint: Paint = Paint()
-    private var blurPaint: Paint = Paint()
 
     private var path = Path()
 
@@ -65,8 +64,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var bitmap2Active = false
 
-    private val blurRectSize = 4F * resources.displayMetrics.density
-
     lateinit var xScaleChange: (() -> Unit)
     lateinit var yScaleChange: (() -> Unit)
 
@@ -79,8 +76,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
         erasePaint.color = Color.WHITE
         erasePaint.style = Paint.Style.FILL
-
-        blurPaint.maskFilter = BlurMaskFilter(blurRectSize / 2, BlurMaskFilter.Blur.NORMAL)
 
         isFocusable = false
         setZOrderOnTop(true)
@@ -150,11 +145,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                                     canvas?.drawBitmap(canvasBitmap2!!, 0F, translateYSum, null)
                                 else
                                     canvas?.drawBitmap(canvasBitmap!!, 0F, translateYSum, null)
-
-                                canvas?.drawRect(0F, 0F, width.toFloat(), blurRectSize, blurPaint)
-                                canvas?.drawRect(0F, 0F, blurRectSize, height.toFloat(), blurPaint)
-                                canvas?.drawRect(0F,height - blurRectSize, width.toFloat(), height.toFloat(), blurPaint)
-                                canvas?.drawRect(width - blurRectSize,0F, width.toFloat(),height - blurRectSize, blurPaint)
                             }
                         } finally {
                             holder.unlockCanvasAndPost(canvas)
