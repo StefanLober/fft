@@ -81,7 +81,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         setZOrderOnTop(true)
 
         holder.addCallback(this)
-        holder.setFormat(PixelFormat.RGBA_8888)
+        holder.setFormat(PixelFormat.RGB_565)
 
         setOnTouchListener { v, event ->
             when (event?.action) {
@@ -219,13 +219,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private fun createBitmap() {
         try {
             if (canvasBitmap == null || canvasBitmap!!.width != width || canvasBitmap!!.height != height) {
-                canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                canvasBitmap!!.setHasAlpha(false)
+                canvasBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
                 bitmapCanvas = Canvas(canvasBitmap!!)
                 bitmapCanvas!!.drawColor(erasePaint.color)
 
-                canvasBitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                canvasBitmap2!!.setHasAlpha(false)
+                canvasBitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
                 bitmapCanvas2 = Canvas(canvasBitmap2!!)
                 bitmapCanvas2!!.drawColor(erasePaint.color)
 
