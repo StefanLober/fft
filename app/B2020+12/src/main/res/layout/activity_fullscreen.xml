@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="0dp"
     android:background="@drawable/cd"
     android:configChanges="orientation"
     android:keepScreenOn="true"
     tools:context=".view.FullscreenActivity">
 
+    <Space
+        android:id="@+id/space"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toStartOf="@id/chart_view"
+        app:layout_constraintBottom_toTopOf="@id/chart_view"
+        app:layout_constraintWidth_percent="0.15"
+        app:layout_constraintHeight_percent="0.06" />
+
     <de.stefanlober.b2020.view.ChartSurfaceView
         android:id="@+id/chart_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="75dp"
-        android:layout_marginTop="22dp"
-        android:layout_marginRight="22dp"
-        android:layout_marginBottom="15dp" />
-</FrameLayout>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="255"
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="@id/space"
+        app:layout_constraintEnd_toEndOf="@id/space"
+        app:layout_constraintWidth_percent="0.77"
+        app:layout_constraintHeight_percent="0.88" />
+</androidx.constraintlayout.widget.ConstraintLayout>

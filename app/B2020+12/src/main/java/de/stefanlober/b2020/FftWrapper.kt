@@ -6,15 +6,20 @@ import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cutOff: Int, private val meanCount: Int, logXTarget: Double, logYTarget: Double) {
-    var logX: Boolean = true
-    var logY: Boolean = true
+class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cutOff: Int, private val meanCount: Int,
+                 logXMinY: Double, logXMaxX: Double, logXMaxY: Double,
+                 logYMinX: Double, logYMaxX: Double, logYMaxY: Double) {
     private val input = DoubleArray(fftSize)
     private val output = DoubleArray(2 * cutOff)
     private val scaledOutput = DoubleArray(cutOff / meanCount)
     private val scaledOutputCopy = DoubleArray(cutOff / meanCount)
-    private val logXScaleFactor = log10(cutOff.toDouble()) / (cutOff / meanCount)
-    private val logYScaleFactor = logYTarget / log10(logYTarget)
+    private val logXA = logXMinY
+    private val logXB = log10(logXMaxY / logXMinY) / logXMaxX
+    private val logYA = logYMaxY / log10(logYMaxX / logYMinX)
+    private val logYB = 1 / logYMinX
+
+    var logX: Boolean = true
+    var logY: Boolean = true
 
     fun calculate(data: ShortArray): DoubleArray {
         val scaleFactor = data.size / input.size.toDouble()
@@ -50,7 +55,7 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
                 if (scaledOutput[i] < 1.0) {
                     scaledOutput[i] = 1.0
                 }
-                scaledOutput[i] = logYScaleFactor * log10(scaledOutput[i])
+                scaledOutput[i] = logYA * log10(logYB * scaledOutput[i])
             }
         }
 
@@ -58,7 +63,7 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
             System.arraycopy(scaledOutput, 0, scaledOutputCopy, 0, scaledOutput.size)
 
             for (i in 0 until scaledOutputCopy.size) {
-                val indexDouble = 10.0.pow(logXScaleFactor * i.toDouble())
+                val indexDouble = logXA * 10.0.pow(logXB * i.toDouble())
                 val index = indexDouble.toInt()
                 if (index + 1 < scaledOutput.size) {
                     scaledOutput[i] = scaledOutputCopy[index] * (1.0 + index.toDouble() - indexDouble) + scaledOutputCopy[index + 1] * (indexDouble - index.toDouble())

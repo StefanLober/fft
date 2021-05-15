@@ -5,6 +5,9 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,8 +23,12 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private val fftSize = 8192
     private val cutOff = 720
     private val meanCount = 1
-    private val logXTarget = 720.0
-    private val logYTarget = 300.0
+    private val logXMinY = 1.0
+    private val logXMaxX = cutOff.toDouble()
+    private val logXMaxY = cutOff.toDouble()
+    private val logYMinX = 1.0
+    private val logYMaxX = Short.MAX_VALUE.toDouble()
+    private val logYMaxY = Short.MAX_VALUE.toDouble()
 
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
@@ -39,7 +46,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
-            ActivityCompat.requestPermissions(this, permissions,0)
+            ActivityCompat.requestPermissions(this, permissions, 0)
         }
 
         setContentView(R.layout.activity_fullscreen)
@@ -51,7 +58,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
         chartView.yScaleChange = yScaleChange
 
         fft = JniFft(fftSize)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXTarget, logYTarget)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXMinY, logXMaxX, logXMaxY, logYMinX, logYMaxX, logYMaxY)
 
         audioController = AudioController(this, fftWrapper)
     }
