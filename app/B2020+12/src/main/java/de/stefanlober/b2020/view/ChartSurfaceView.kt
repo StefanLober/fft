@@ -2,19 +2,14 @@ package de.stefanlober.b2020.view
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.*
 import android.os.Process
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.widget.FrameLayout
-import androidx.core.view.marginLeft
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.math.min
-
 
 class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     constructor(context: Context) : this(context, null) {
@@ -40,10 +35,10 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     }
 
     private var translateYSum: Float = 0F
-    private val valueDivisor = 80F
-    private val maxValueFactor = 10F
 
     private var dataTimeNs = 80 * 1000000L
+
+    private var maxValueStepCount = 40
 
     var listSize = landscapeListSize
 
@@ -189,8 +184,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     private fun drawData(data: DoubleArray, canvas: Canvas?) {
         try {
             stepHeight = (height / listSize).toFloat()
-            val yScaleFactor = stepHeight / valueDivisor
-            val maxValue = maxValueFactor * stepHeight
+            val yScaleFactor = maxValueStepCount * stepHeight / Short.MAX_VALUE
 
             path.reset()
 
@@ -201,8 +195,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
             for (i in 1 until data.size - 1) {
                 val xCoord = i.toFloat() * xScaleFactor
-                var scaledValue = (data[i] * yScaleFactor).toFloat()
-                scaledValue = min(maxValue, scaledValue)
+                val scaledValue = (data[i] * yScaleFactor).toFloat()
                 val yCoord = yCenter - scaledValue
                 path.lineTo(xCoord, yCoord)
             }
