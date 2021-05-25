@@ -19,12 +19,12 @@ class FftWrapperTest {
     private val dataSize = 2500
     private val amplitude = 800.0
     private val meanCount = 1
-    private val logXMinY = 1.0
-    private val logXMaxX = cutOff.toDouble()
-    private val logXMaxY = cutOff.toDouble()
-    private val logYMinX = 100.0
-    private val logYMaxX = Short.MAX_VALUE.toDouble()
-    private val logYMaxY = Short.MAX_VALUE.toDouble()
+    private val logXMinOut = 1.0
+    private val logXMaxIn = cutOff.toDouble()
+    private val logXMaxOut = cutOff.toDouble()
+    private val logYMinIn = 100.0
+    private val logYMaxIn = Short.MAX_VALUE.toDouble()
+    private val logYMaxOut = Short.MAX_VALUE.toDouble()
 
     private val data = ShortArray(dataSize)
     private val outputValues = DoubleArray(2 * cutOff)
@@ -32,7 +32,7 @@ class FftWrapperTest {
     @Before
     fun setUp() {
         fft = TestFft(outputValues)
-        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXMinY, logXMaxX, logXMaxY, logYMinX, logYMaxX, logYMaxY)
+        fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXMinOut, logXMaxIn, logXMaxOut, logYMinIn, logYMaxIn, logYMaxOut)
     }
 
     @After
@@ -104,7 +104,7 @@ class FftWrapperTest {
 
     @Test
     fun sin_frequencyMaxX_logX() {
-        outputValues[2 * logXMaxX.toInt() - 2] = amplitude * fftSize / 2
+        outputValues[2 * logXMaxIn.toInt() - 2] = amplitude * fftSize / 2
 
         fftWrapper.logX = true
         fftWrapper.logY = false
@@ -112,7 +112,7 @@ class FftWrapperTest {
 
         writeCsv(scaledOutput, "sin_frequencyMaxX_logX.csv")
 
-        Assert.assertEquals(amplitude, scaledOutput[logXMaxY.toInt() - 1], delta)
+        Assert.assertEquals(amplitude, scaledOutput[logXMaxOut.toInt() - 1], delta)
     }
 
     @Test
@@ -179,7 +179,7 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies() {
-        val factor = logYMaxX / cutOff
+        val factor = logYMaxIn / cutOff
 
         for (i in 0 until cutOff) {
             outputValues[2 * i] = (i * factor * fftSize / 2)
@@ -197,7 +197,7 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies_logX() {
-        val factor = logYMaxX / cutOff
+        val factor = logYMaxIn / cutOff
 
         for (i in 0 until cutOff) {
             outputValues[2 * i] = (i * factor * fftSize / 2)
@@ -215,7 +215,7 @@ class FftWrapperTest {
 
     @Test
     fun linear_frequencies_logY() {
-        val factor = logYMaxX / cutOff
+        val factor = logYMaxIn / cutOff
 
         for (i in 0 until cutOff) {
             outputValues[2 * i] = (i * factor * fftSize / 2)
@@ -228,12 +228,12 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies_logY.csv")
 
 //        Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(logYMaxY, scaledOutput[cutOff - 1], delta)
+        Assert.assertEquals(logYMaxOut, scaledOutput[cutOff - 1], delta)
     }
 
     @Test
     fun linear_frequencies_logX_logY() {
-        val factor = logYMaxX / cutOff
+        val factor = logYMaxIn / cutOff
 
         for (i in 0 until cutOff) {
             outputValues[2 * i] = (i * factor * fftSize / 2)
