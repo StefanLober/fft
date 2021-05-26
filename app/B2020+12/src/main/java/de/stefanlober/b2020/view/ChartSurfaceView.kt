@@ -34,11 +34,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         const val landscapeListSize = 45
     }
 
+    private var maxValueStepCount = 400
+
     private var translateYSum: Float = 0F
 
     private var dataTimeNs = 80 * 1000000L
-
-    private var maxValueStepCount = 40
 
     var listSize = landscapeListSize
 

@@ -24,7 +24,7 @@ class FftWrapperTest {
     private val logXMaxOut = cutOff.toDouble()
     private val logYMinIn = 100.0
     private val logYMaxIn = Short.MAX_VALUE.toDouble()
-    private val logYMaxOut = Short.MAX_VALUE.toDouble()
+    private val logYMaxOut = Short.MAX_VALUE.toDouble() / 50
 
     private val data = ShortArray(dataSize)
     private val outputValues = DoubleArray(2 * cutOff)

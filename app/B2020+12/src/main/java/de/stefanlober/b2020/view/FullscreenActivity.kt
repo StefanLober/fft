@@ -28,7 +28,7 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private val logXMaxOut = cutOff.toDouble()
     private val logYMinIn = 1.0
     private val logYMaxIn = Short.MAX_VALUE.toDouble()
-    private val logYMaxOut = Short.MAX_VALUE.toDouble()
+    private val logYMaxOut = Short.MAX_VALUE.toDouble() / 50
 
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
