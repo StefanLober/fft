@@ -8,15 +8,13 @@ import kotlin.math.sqrt
 
 class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cutOff: Int, private val meanCount: Int,
                  logXMinOut: Double, logXMaxIn: Double, logXMaxOut: Double,
-                 logYMinIn: Double, logYMaxIn: Double, logYMaxOut: Double) {
+                 private val logYMindB: Double, private val logYMaxdB: Double) {
     private val input = DoubleArray(fftSize)
     private val output = DoubleArray(2 * cutOff)
     private val scaledOutput = DoubleArray(cutOff / meanCount)
     private val scaledOutputCopy = DoubleArray(cutOff / meanCount)
     private val logXA = logXMinOut
     private val logXB = log10(logXMaxOut / logXMinOut) / logXMaxIn
-    private val logYA = logYMaxOut / log10(logYMaxIn / logYMinIn)
-    private val logYB = 1 / logYMinIn
 
     var logX: Boolean = true
     var logY: Boolean = true
@@ -55,7 +53,8 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
                 if (scaledOutput[i] < 1.0) {
                     scaledOutput[i] = 1.0
                 }
-                scaledOutput[i] = logYA * log10(logYB * scaledOutput[i])
+                val dB = 20 * log10(scaledOutput[i] / Short.MAX_VALUE)
+                scaledOutput[i] = (dB - logYMindB) * Short.MAX_VALUE / (logYMaxdB - logYMindB)
             }
         }
 
