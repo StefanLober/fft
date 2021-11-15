@@ -1,8 +1,8 @@
 package de.stefanlober.b2020
 
 import fft.IFft
-import org.junit.After
 import org.junit.Assert
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -13,17 +13,16 @@ class FftWrapperTest {
     private lateinit var fft: TestFft
     private lateinit var fftWrapper: FftWrapper
 
-    private val delta = 10.0
+    private val delta = 500.0
     private val fftSize = 8192
     private val cutOff = 720
     private val dataSize = 2500
-    private val amplitude = 800.0
     private val meanCount = 1
-    private val logXMinOut = 1.0
+    private val logXMinOut = 0.1
     private val logXMaxIn = cutOff.toDouble()
     private val logXMaxOut = cutOff.toDouble()
     private val logYMindB = -50.0
-    private val logYMaxdB = 10.0
+    private val logYMaxdB = 0.0
 
     private val data = ShortArray(dataSize)
     private val outputValues = DoubleArray(2 * cutOff)
@@ -37,143 +36,6 @@ class FftWrapperTest {
     @After
     fun tearDown() {
         fft.dispose()
-    }
-
-//    @Test
-//    fun const_amplitude() {
-//        outputValues[0] = amplitude * fftSize
-//
-//        fftWrapper.logX = false
-//        fftWrapper.logY = false
-//        val scaledOutput = fftWrapper.calculate(data)
-//
-//        Assert.assertEquals(amplitude * 2.0, scaledOutput[0], delta)
-//        Assert.assertEquals(0.0, scaledOutput[1], delta)
-//    }
-
-    @Test
-    fun sin_frequency1() {
-        outputValues[3] = amplitude * fftSize / 2
-
-        fftWrapper.logX = false
-        fftWrapper.logY = false
-        val scaledOutput = fftWrapper.calculate(data)
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun sin_frequency1_logX() {
-        outputValues[3] = amplitude * fftSize / 2
-
-        fftWrapper.logX = true
-        fftWrapper.logY = false
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "sin_frequency1_logX.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun sin_frequency1_logY() {
-        outputValues[3] = amplitude * fftSize / 2
-
-        fftWrapper.logX = false
-        fftWrapper.logY = true
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "sin_frequency1_logY.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun sin_frequency1_logX_logY() {
-        outputValues[3] = amplitude * fftSize / 2
-
-        fftWrapper.logX = true
-        fftWrapper.logY = true
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "sin_frequency1_logX_logY.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun sin_frequencyMaxX_logX() {
-        outputValues[2 * logXMaxIn.toInt() - 2] = amplitude * fftSize / 2
-
-        fftWrapper.logX = true
-        fftWrapper.logY = false
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "sin_frequencyMaxX_logX.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[logXMaxOut.toInt() - 1], delta)
-    }
-
-    @Test
-    fun all_frequencies() {
-        for (i in 0 until cutOff) {
-            outputValues[2 * i] = amplitude * fftSize / 2
-        }
-
-        fftWrapper.logX = true
-        fftWrapper.logY = false
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "all_frequencies.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun all_frequencies_logX() {
-        for (i in 0 until cutOff) {
-            outputValues[2 * i] = amplitude * fftSize / 2
-        }
-
-        fftWrapper.logX = true
-        fftWrapper.logY = false
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "all_frequencies_logX.csv")
-
-        Assert.assertEquals(amplitude, scaledOutput[0], delta)
-    }
-
-    @Test
-    fun all_frequencies_logY() {
-        for (i in 0 until cutOff) {
-            outputValues[2 * i] = amplitude * fftSize / 2
-        }
-
-        fftWrapper.logX = false
-        fftWrapper.logY = true
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "all_frequencies_logY.csv")
-
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
-    }
-
-    @Test
-    fun all_frequencies_logX_logY() {
-        for (i in 0 until cutOff) {
-            outputValues[2 * i] = amplitude * fftSize / 2
-        }
-
-        fftWrapper.logX = true
-        fftWrapper.logY = true
-        val scaledOutput = fftWrapper.calculate(data)
-
-        writeCsv(scaledOutput, "all_frequencies_logX_logY.csv")
-
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
     }
 
     @Test
@@ -190,8 +52,9 @@ class FftWrapperTest {
 
         writeCsv(scaledOutput, "linear_frequencies.csv")
 
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
+        Assert.assertEquals(cutOff, scaledOutput.size)
+        Assert.assertEquals(0.0, scaledOutput[0], delta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
     }
 
     @Test
@@ -208,8 +71,9 @@ class FftWrapperTest {
 
         writeCsv(scaledOutput, "linear_frequencies_logX.csv")
 
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
+        Assert.assertEquals(cutOff, scaledOutput.size)
+        Assert.assertEquals(0.0, scaledOutput[0], delta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
     }
 
     @Test
@@ -226,8 +90,9 @@ class FftWrapperTest {
 
         writeCsv(scaledOutput, "linear_frequencies_logY.csv")
 
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYMaxOut, scaledOutput[cutOff - 1], delta)
+        Assert.assertEquals(cutOff, scaledOutput.size)
+        Assert.assertEquals(0.0, scaledOutput[0], delta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
     }
 
     @Test
@@ -244,8 +109,9 @@ class FftWrapperTest {
 
         writeCsv(scaledOutput, "linear_frequencies_logX_logY.csv")
 
-//        Assert.assertEquals(0.0, scaledOutput[0], delta)
-//        Assert.assertEquals(logYTarget, scaledOutput[1], delta)
+        Assert.assertEquals(cutOff, scaledOutput.size)
+        Assert.assertEquals(0.0, scaledOutput[0], delta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
     }
 
     private fun writeCsv(values: DoubleArray, fileName: String) {

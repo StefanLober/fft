@@ -1,6 +1,7 @@
 package de.stefanlober.b2020
 
 import fft.IFft
+import java.lang.Double.max
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.pow
@@ -49,19 +50,21 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
         }
 
         if (logY) {
-            for (i in 0 until scaledOutput.size) {
-                if (scaledOutput[i] < 1.0) {
-                    scaledOutput[i] = 1.0
+            for (i in scaledOutput.indices) {
+                val minLogInput = 0.001
+                if (scaledOutput[i] < minLogInput) {
+                    scaledOutput[i] = minLogInput
                 }
                 val dB = 20 * log10(scaledOutput[i] / Short.MAX_VALUE)
                 scaledOutput[i] = (dB - logYMindB) * Short.MAX_VALUE / (logYMaxdB - logYMindB)
+                scaledOutput[i] = max(0.0, scaledOutput[i])
             }
         }
 
         if (logX) {
             System.arraycopy(scaledOutput, 0, scaledOutputCopy, 0, scaledOutput.size)
 
-            for (i in 0 until scaledOutputCopy.size) {
+            for (i in scaledOutputCopy.indices) {
                 val indexDouble = logXA * 10.0.pow(logXB * i.toDouble())
                 val index = indexDouble.toInt()
                 if (index + 1 < scaledOutput.size) {
