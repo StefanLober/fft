@@ -20,10 +20,9 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private val fftSize = 8192
     private val cutOff = 720
     private val meanCount = 1
-    private val logXMinOut = 1.0
+    private val logXMinOut = 0.1
     private val logXMaxIn = cutOff.toDouble()
     private val logXMaxOut = cutOff.toDouble()
-    private val logYMinIn = 1.0
     private val logYMindB = -50.0
     private val logYMaxdB = 0.0
 
@@ -84,6 +83,16 @@ class FullscreenActivity : AppCompatActivity(), IView {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+
+        setMargin(newConfig.orientation)
+    }
+
+    private fun setMargin(orientation: Int) {
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            chartView.listSize = ChartSurfaceView.portraitListSize
+        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            chartView.listSize = ChartSurfaceView.landscapeListSize
+        }
     }
 
     override fun update(data: DoubleArray) {

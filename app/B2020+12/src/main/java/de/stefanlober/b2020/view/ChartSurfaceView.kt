@@ -10,6 +10,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.math.max
 
 class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     constructor(context: Context) : this(context, null) {
@@ -34,7 +35,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
         const val landscapeListSize = 45
     }
 
-    private var maxValueStepCount = 400
+    private var maxValueStepCount = 300
 
     private var translateYSum: Float = 0F
 
@@ -64,8 +65,8 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
-        paint.color = Color.DKGRAY
-        paint.strokeWidth = 1.2F * resources.displayMetrics.density
+        paint.color = Color.rgb(70, 70, 70)
+        paint.strokeWidth = 1.0F * resources.displayMetrics.density
         paint.style = Paint.Style.STROKE
         paint.isAntiAlias = true
 
@@ -124,12 +125,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
                         val deltaTimeNs = timeNs - lastTimeNs
                         lastTimeNs = timeNs
 
-                        val canvas =
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                holder.lockHardwareCanvas()
-                            } else {
-                                holder.lockCanvas()
-                            }
+                        val canvas = holder.lockHardwareCanvas()
                         try {
                             synchronized(holder) {
                                 val translateY = -stepHeight * deltaTimeNs / dataTimeNs
