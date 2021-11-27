@@ -1,8 +1,6 @@
 package de.stefanlober.b2020
 
 import fft.IFft
-import java.lang.Double.doubleToLongBits
-import java.lang.Double.max
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.pow
