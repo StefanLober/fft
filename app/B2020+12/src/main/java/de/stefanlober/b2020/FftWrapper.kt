@@ -1,6 +1,7 @@
 package de.stefanlober.b2020
 
 import fft.IFft
+import java.lang.Double.doubleToLongBits
 import java.lang.Double.max
 import kotlin.math.abs
 import kotlin.math.log10
@@ -49,29 +50,29 @@ class FftWrapper(private val fft: IFft, private val fftSize: Int, private val cu
             scaledOutput[i] = sqrt(output[index] * output[index] + output[index + 1] * output[index + 1]) / (fftSize / 2)
         }
 
+        if (logX) {
+            System.arraycopy(scaledOutput, 0, scaledOutputCopy, 0, scaledOutput.size)
+
+            for (i in scaledOutputCopy.indices) {
+                val indexDouble = logXA * 10.0.pow(logXB * i)
+                val index = indexDouble.toInt()
+                val valueAtIndex = scaledOutputCopy[index]
+                if (index + 1 < scaledOutput.size) {
+                    scaledOutput[i] = valueAtIndex + (scaledOutputCopy[index + 1] - valueAtIndex) * (indexDouble - index)
+                } else if (index < scaledOutput.size) {
+                    scaledOutput[i] = valueAtIndex
+                }
+            }
+        }
+
         if (logY) {
+            val minLogInput = 0.01
             for (i in scaledOutput.indices) {
-                val minLogInput = 0.001
                 if (scaledOutput[i] < minLogInput) {
                     scaledOutput[i] = minLogInput
                 }
                 val dB = 20 * log10(scaledOutput[i] / Short.MAX_VALUE)
                 scaledOutput[i] = (dB - logYMindB) * Short.MAX_VALUE / (logYMaxdB - logYMindB)
-                scaledOutput[i] = max(0.0, scaledOutput[i])
-            }
-        }
-
-        if (logX) {
-            System.arraycopy(scaledOutput, 0, scaledOutputCopy, 0, scaledOutput.size)
-
-            for (i in scaledOutputCopy.indices) {
-                val indexDouble = logXA * 10.0.pow(logXB * i.toDouble())
-                val index = indexDouble.toInt()
-                if (index + 1 < scaledOutput.size) {
-                    scaledOutput[i] = scaledOutputCopy[index] * (1.0 + index.toDouble() - indexDouble) + scaledOutputCopy[index + 1] * (indexDouble - index.toDouble())
-                } else if (index < scaledOutput.size) {
-                    scaledOutput[i] = scaledOutputCopy[index]
-                }
             }
         }
 

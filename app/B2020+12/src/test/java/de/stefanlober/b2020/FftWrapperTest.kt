@@ -13,12 +13,13 @@ class FftWrapperTest {
     private lateinit var fft: TestFft
     private lateinit var fftWrapper: FftWrapper
 
-    private val delta = 500.0
+    private val minDelta = 100.0
+    private val deltaFactor = 0.02
     private val fftSize = 8192
     private val cutOff = 720
     private val dataSize = 2500
     private val meanCount = 1
-    private val logXMinOut = 0.1
+    private val logXMinOut = 0.01
     private val logXMaxIn = cutOff.toDouble()
     private val logXMaxOut = cutOff.toDouble()
     private val logYMindB = -50.0
@@ -53,8 +54,8 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies.csv")
 
         Assert.assertEquals(cutOff, scaledOutput.size)
-        Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
+        Assert.assertEquals(0.0, scaledOutput[0], minDelta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], minDelta + Short.MAX_VALUE * deltaFactor)
     }
 
     @Test
@@ -72,8 +73,8 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies_logX.csv")
 
         Assert.assertEquals(cutOff, scaledOutput.size)
-        Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
+        Assert.assertEquals(0.0, scaledOutput[0], minDelta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], minDelta + Short.MAX_VALUE * deltaFactor)
     }
 
     @Test
@@ -91,8 +92,8 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies_logY.csv")
 
         Assert.assertEquals(cutOff, scaledOutput.size)
-        Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
+        //Assert.assertEquals(0.0, scaledOutput[0], minDelta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], minDelta + Short.MAX_VALUE * deltaFactor)
     }
 
     @Test
@@ -110,8 +111,8 @@ class FftWrapperTest {
         writeCsv(scaledOutput, "linear_frequencies_logX_logY.csv")
 
         Assert.assertEquals(cutOff, scaledOutput.size)
-        Assert.assertEquals(0.0, scaledOutput[0], delta)
-        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], delta)
+        //Assert.assertEquals(0.0, scaledOutput[0], minDelta)
+        Assert.assertEquals(Short.MAX_VALUE.toDouble(), scaledOutput[cutOff - 1], minDelta + Short.MAX_VALUE * deltaFactor)
     }
 
     private fun writeCsv(values: DoubleArray, fileName: String) {
