@@ -6,7 +6,6 @@ import android.media.MediaRecorder
 import de.stefanlober.b2020.FftWrapper
 import de.stefanlober.b2020.view.IView
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.logging.Logger
 

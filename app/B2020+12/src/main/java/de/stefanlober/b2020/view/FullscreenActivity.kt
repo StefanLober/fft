@@ -19,12 +19,12 @@ import java.util.logging.Logger
 class FullscreenActivity : AppCompatActivity(), IView {
     private val fftSize = 8192
     private val cutOff = 720
-    private val meanCount = 1
+    private val meanCount = 3
     private val logXMinOut = 0.1
     private val logXMaxIn = cutOff.toDouble()
     private val logXMaxOut = cutOff.toDouble()
-    private val logYMindB = -50.0
-    private val logYMaxdB = 0.0
+    private val logYMindB = -65.0
+    private val logYMaxdB = 1000.0
 
     private lateinit var chartView: ChartSurfaceView
     private lateinit var audioController: AudioController
@@ -63,6 +63,8 @@ class FullscreenActivity : AppCompatActivity(), IView {
         super.onResume()
         Logger.getLogger("B2020Logger").log(Level.INFO, "onResume")
 
+        applyOrientation(getResources().getConfiguration().orientation)
+
         audioController.start()
     }
 
@@ -84,10 +86,10 @@ class FullscreenActivity : AppCompatActivity(), IView {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        setMargin(newConfig.orientation)
+        applyOrientation(newConfig.orientation)
     }
 
-    private fun setMargin(orientation: Int) {
+    private fun applyOrientation(orientation: Int) {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             chartView.listSize = ChartSurfaceView.portraitListSize
         } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {

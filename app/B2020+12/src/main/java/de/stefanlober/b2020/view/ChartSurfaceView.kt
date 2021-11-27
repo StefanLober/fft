@@ -191,7 +191,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
             for (i in 1 until data.size - 1) {
                 val xCoord = i.toFloat() * xScaleFactor
-                val scaledValue = (data[i] * yScaleFactor).toFloat()
+                val scaledValue = max((data[i] * yScaleFactor).toFloat(), 0F)
                 val yCoord = yCenter - scaledValue
                 path.lineTo(xCoord, yCoord)
             }
