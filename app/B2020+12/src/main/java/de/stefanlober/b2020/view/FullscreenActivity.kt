@@ -5,6 +5,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.MotionEvent
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,12 +29,11 @@ class FullscreenActivity : AppCompatActivity(), IView {
     private val logYMaxdB = 1000.0
 
     private lateinit var chartView: ChartSurfaceView
+    private lateinit var textViewX: TextView
+    private lateinit var textViewY: TextView
     private lateinit var audioController: AudioController
     private lateinit var fft: IFft
     private lateinit var fftWrapper: FftWrapper
-
-    private val xScaleChange: () -> Unit = { fftWrapper.logX = !fftWrapper.logX }
-    private val yScaleChange: () -> Unit = { fftWrapper.logY = !fftWrapper.logY }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +51,44 @@ class FullscreenActivity : AppCompatActivity(), IView {
         supportActionBar?.hide()
 
         chartView = findViewById(R.id.chart_view)
-        chartView.xScaleChange = xScaleChange
-        chartView.yScaleChange = yScaleChange
+
+        textViewX = findViewById(R.id.textView_x)
+        textViewX.setOnTouchListener { v, event ->
+            when (event?.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    try {
+                        fftWrapper.logX = !fftWrapper.logX
+                        if(fftWrapper.logX)
+                            textViewX.text = "log\nX"
+                        else
+                            textViewX.text = "lin\nX"
+                    } catch (ex: Exception) {
+                        Logger.getLogger("B2020Logger").log(Level.WARNING," MotionEvent.ACTION_DOWN", ex)
+                    }
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
+
+        textViewY = findViewById(R.id.textView_y)
+        textViewY.setOnTouchListener { v, event ->
+            when (event?.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    try {
+                        fftWrapper.logY = !fftWrapper.logY
+                        if(fftWrapper.logY)
+                            textViewY.text = "log\nY"
+                        else
+                            textViewY.text = "lin\nY"
+                    } catch (ex: Exception) {
+                        Logger.getLogger("B2020Logger").log(Level.WARNING," MotionEvent.ACTION_DOWN", ex)
+                    }
+                }
+            }
+
+            v?.onTouchEvent(event) ?: true
+        }
 
         fft = JniFft(fftSize)
         fftWrapper = FftWrapper(fft, fftSize, cutOff, meanCount, logXMinOut, logXMaxIn, logXMaxOut, logYMindB, logYMaxdB)

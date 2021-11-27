@@ -60,9 +60,6 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
 
     private var bitmap2Active = false
 
-    lateinit var xScaleChange: (() -> Unit)
-    lateinit var yScaleChange: (() -> Unit)
-
     @SuppressLint("ClickableViewAccessibility")
     private fun init() {
         paint.color = Color.rgb(70, 70, 70)
@@ -83,14 +80,7 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {
                     try {
-                        Logger.getLogger("B2020Logger").log(Level.INFO," touch x=" + event.x + " y=" + event.y)
-                        if (event.y < height / 3) {
-                            swapColors()
-                        } else if (event.x < width / 2) {
-                            xScaleChange.invoke()
-                        } else {
-                            yScaleChange.invoke()
-                        }
+                        swapColors()
                     } catch (ex: Exception) {
                         Logger.getLogger("B2020Logger").log(Level.WARNING," MotionEvent.ACTION_DOWN", ex)
                     }

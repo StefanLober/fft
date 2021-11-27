@@ -29,4 +29,52 @@
         app:layout_constraintEnd_toEndOf="@id/space"
         app:layout_constraintWidth_percent="0.77"
         app:layout_constraintHeight_percent="0.88" />
+
+    <Space
+        android:id="@+id/space_textview_x"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toStartOf="@id/textView_x"
+        app:layout_constraintBottom_toTopOf="@id/textView_x"
+        app:layout_constraintWidth_percent="0.06"
+        app:layout_constraintHeight_percent="0.565" />
+
+    <TextView
+        android:id="@+id/textView_x"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="255"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:text="log\nX"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/space_textview_x"
+        app:layout_constraintEnd_toEndOf="@id/space_textview_x"
+        app:layout_constraintHeight_percent="0.08"
+        app:layout_constraintWidth_percent="0.075" />
+
+    <Space
+        android:id="@+id/space_textview_y"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toStartOf="@id/textView_y"
+        app:layout_constraintBottom_toTopOf="@id/textView_y"
+        app:layout_constraintWidth_percent="0.06"
+        app:layout_constraintHeight_percent="0.792" />
+
+    <TextView
+        android:id="@+id/textView_y"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="255"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:text="log\nY"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/space_textview_y"
+        app:layout_constraintEnd_toEndOf="@id/space_textview_y"
+        app:layout_constraintHeight_percent="0.08"
+        app:layout_constraintWidth_percent="0.075" />
 </androidx.constraintlayout.widget.ConstraintLayout>
