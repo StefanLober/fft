@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "36715524-fba8-44a0-b84c-1d54118684a1": {
+      "ProjectGuid": "36715524-fba8-44a0-b84c-1d54118684a1",
+      "DisplayName": "fft-test",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
