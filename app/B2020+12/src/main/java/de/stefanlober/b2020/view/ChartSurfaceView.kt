@@ -29,11 +29,11 @@ class ChartSurfaceView : SurfaceView, SurfaceHolder.Callback {
     companion object {
         const val portraitXMargin = 0.01F
         const val portraitYMargin = 0.1F
-        const val portraitListSize = 80
+        const val portraitListSize = 100
 
         const val landscapeXMargin = 0.02F
         const val landscapeYMargin = 0.05F
-        const val landscapeListSize = 50
+        const val landscapeListSize = 45
     }
 
     private val valueDivisor = 40F
